@@ -9,8 +9,6 @@ import calendar
 import subprocess
 import time
 import psutil
-#import warnings
-#warnings.simplefilter('ignore', category=UserWarning)
 
 
 def IsRunning():
@@ -18,7 +16,6 @@ def IsRunning():
         try:
             if proc.name() == "Reagent serial number generator_RUS.exe":
                 return
-                break
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
     subprocess.Popen(r'\\Server\work\technical_support\Баркоды\Генератор бар-кода 100 (новый)\Reagent serial number generator_RUS.exe')
@@ -32,6 +29,15 @@ def IsRunning():
     #    subprocess.Popen(r'\\Server\work\technical_support\Баркоды\Генератор бар-кода 100 (новый)\Reagent serial number generator_RUS.exe')
     #    time.sleep(3)
 
+def UISelect(UIIndex_1=0, UIIndex_2=None, UIIndex_3=None):
+
+    if UIIndex_1 != 0:
+        return UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":UIIndex_1}])    
+    elif UIIndex_2 is not None and UIIndex_3 is None:
+        return UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":UIIndex_1},{"ctrl_index":UIIndex_2}])
+    elif UIIndex_3 is not None:
+        return UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":UIIndex_1},{"ctrl_index":UIIndex_2},{"ctrl_index":UIIndex_3}])
+
 
 
 def BCgenTecom(BQ, ID, Vol, BN, ED, UID):
@@ -39,24 +45,24 @@ def BCgenTecom(BQ, ID, Vol, BN, ED, UID):
 
     GENERATOR_UI = UIDesktop.UIOSelector_Get_UIO([{"title":"To generate Reagent number verification","class_name":"ThunderRT6FormDC","backend":"win32"}])
     GENERATOR_UI.set_focus()
-    
-    ID_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":22}]) # Поле ввода кода реагента
+
+    ID_UI = UISelect(UIIndex_1 = 22)        # Поле ввода кода реагента                                                                                                
     ID_UI.set_text(ID)
     
-    BNF_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":0},{"ctrl_index":17}]) # Поле ввода начальн. серийн. нормера
+    BNF_UI = UISelect(UIIndex_2 = 17)       # Поле ввода начальн. серийн. нормера
     BNF_UI.set_text(str(BN))
    
-    BNL_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":0},{"ctrl_index":9}]) # Поле ввода конечн. серийн. номера
-    BNL_UI.set_text(str(BN+BQ-1))
+    BNL_UI = UISelect(UIIndex_2 = 9)        # Поле ввода конечн. серийн. номера
+    BNL_UI.set_text(str(int(BN)+BQ-1))
     
-    ED_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":13}])
+    ED_UI = UISelect(UIIndex_1 = 13)
     ED_UI.click_input()
     ED_UI.type_keys(ED)
 
-    UID_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":0},{"ctrl_index":0}])
+    UID_UI = UISelect(UIIndex_2 = 0)
     UID_UI.set_text(UID)
     
-    Vol_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":0},{"ctrl_index":19}])
+    Vol_UI = UISelect(UIIndex_2 = 19)
     VolValues = Vol_UI.item_texts()
     
     iVals = [0]*len(VolValues)                                      # Вспомогательный целочисленный массив для поиска ближайшего значения объема 
@@ -68,10 +74,10 @@ def BCgenTecom(BQ, ID, Vol, BN, ED, UID):
             break
     Vol_UI.select(SortedValues[i][0])                               # Установить элемент выпадающего списка по старому индексу
 
-    Generate_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":0},{"ctrl_index":13}])
+    Generate_UI = UISelect(UIIndex_2 = 13)
     Generate_UI.click()
 
-    Codes_UI = UIDesktop.UIOSelector_Get_UIO([{"class_name":"ThunderRT6FormDC","backend":"win32"},{"ctrl_index":0},{"ctrl_index":14},{"ctrl_index":1}])
+    Codes_UI = UISelect(UIIndex_2 = 14, UIIndex_3 = 1)
     Code = (Codes_UI.window_text()).split('             Passed\r\n')
 
     BarCodes = []
@@ -81,7 +87,7 @@ def BCgenTecom(BQ, ID, Vol, BN, ED, UID):
 
 def BNgenTecom():
     nowdate = datetime.today()
-    return int(str(nowdate.day)+str(nowdate.month+datetime.weekday(nowdate)))
+    return '{:02}'.format(nowdate.day)+'{:02}'.format(nowdate.month+datetime.weekday(nowdate))
 
 def EDgenTecom(Date):
     Y = '20'+Date[2:]
@@ -115,9 +121,10 @@ def TecomGen(HOSP, UID, SN):
     else:
         return('TecomRobot - Дело сделано')
 
-HOSP = 'ГБУЗ РХ "Абазинская городская больница'
-UID = 'LICG900V03593059470366C61FAD'
-SN = 'LICG900V035930594703'
+
+HOSP = 'ООО "Айболит", г. Иваново'
+UID = 'LICG900V03L2-E1577B2CF180D'
+SN = 'LICG900V03L2-E1577'
 
 source_dir = Path.cwd()
 if __name__ == "__main__":
@@ -125,4 +132,3 @@ if __name__ == "__main__":
     if result != 'TecomRobot - Нечего выполнять':
         os.system(str(source_dir)+'\Bases\\outTecom.dbf')
     else: print(result)
-

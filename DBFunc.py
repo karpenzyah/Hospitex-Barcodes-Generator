@@ -1,72 +1,62 @@
-from pathlib import *
-import pyodbc
 from datetime import *
-import csv
+from configparser import *
 
-#def GetTask(Invoice, DevType):
-#    source_dir = str(Path.cwd())
-    
-#    TaskCSVFile = open(source_dir + '\\' + DevType+'Task.csv', 'w', newline='\n', )
-#    writer = csv.DictWriter(TaskCSVFile, fieldnames = ['Item','ID','BQ','Size','Vol','BN','ED','UID'], delimiter=',')
-#    writer.writeheader()
-#    writer.writerow({'Item': prs['Item'], 'ID': prs['ID'], 'BQ': prs['BQ'], 'Size': prs['Size'], 'Vol': prs['Vol'], 'BN': prs['BN'], 'ED': prs['ED'], 'UID': prs['UID']})
-#     csvnewfile.close()
-#        win32api.WinExec('C:\\Users\\AM\\Desktop\\LVWIN60\\lv.exe C:\\Users\\AM\\Desktop\\Bars\\Bar.lbl')
-#    os.remove(str(source_dir) + HOSP+'.csv')
+import pyodbc
 
-def DictFromMDB(invoice):
-    conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=X:\trade_database\HOSP_OFFICE_be.mdb;')
-    cursor = conn.cursor() 
-    cursor.execute("select KOD, PRIM_NAKL, QT from EXCEL_DATA WHERE NOM_SH='"+invoice+"'" )
+# Reads path to DB from Settings.ini by db_name (can be 'Trade' or 'Goods') and connects to it, returns cursor
+def _db_cursor(db_name): 
+    conf = ConfigParser()
+    conf.read("Settings.ini")
+    path_to_db = conf['PathTo'][db_name+'Database']
+    connection = pyodbc.connect("Driver={Microsoft Access Driver (*.mdb, *.accdb)};"
+                                f"DBQ={path_to_db};")
+    return connection.cursor() 
 
-    columns = ['REF','ED','BQ']
+# Returns only biochemical reagents invoice positions 
+def get_invoice(invoiceN): 
+    trade_cursor = _db_cursor('Trade')
+    goods_cursor = _db_cursor('Goods')
+    trade_cursor.execute(f"select KOD, PRIM_NAKL, QT from EXCEL_DATA where NOM_SH='{invoiceN}'")
+
+    columns = ['ITEM',
+               'R1Vol',
+               'R2Vol',
+               'URIT_ID', 
+               'URIT_SIZE',
+               'TECOM_ID',
+               'REF',
+               'ED',
+               'BQ'
+              ]
     results = []
-    for row in cursor.fetchall():
-        results.append(dict(zip(columns, row)))
-    return(results)
+    for row in trade_cursor.fetchall():
+        goods_cursor.execute("select ITEM, R1_VOL, R2_VOL, URIT_ID, URIT_SIZE, TECOM_ID from EXCEL_KART WHERE KOD = '%s'" %row[0])
+        params = goods_cursor.fetchone()
+        if params[0] is None:
+            continue
+        else:
+            results.append(dict(zip(columns, list(params)+list(row))))
+    trade_cursor.close()
+    goods_cursor.close()
+    return results
 
-def GetInvoices():
-    conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=X:\trade_database\HOSP_OFFICE_be.mdb;')
-    cursor = conn.cursor() 
-
-    nowdate = datetime.now()
-    daysago = nowdate - timedelta(days=14)
-    print(nowdate.date(),daysago.date())
-    cursor.execute("select DISTINCT NOM_SH from EXCEL_SHET WHERE DATA BETWEEN {d'%(da)s'} AND {d'%(nwd)s'}" %{'da':daysago.date(), 'nwd':nowdate.date()})
-    results = []
-    for row in cursor.fetchall():
-        results.append(row[0])
-    cursor.close()
-    return(results)
-
-def GetCustomer(invoiceNumber):
-    conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=X:\trade_database\HOSP_OFFICE_be.mdb;')
-    cursor = conn.cursor() 
-
-    cursor.execute("select distinct GRUZOPOL from EXCEL_DATA WHERE NOM_SH = '%(invc)s'" %{'invc':invoiceNumber})
-    results = []
-    for row in cursor.fetchall():
-        results.append(row[0])
-    cursor.close()
-    return(results)
-
-def GetReagentByREF(REF):
-    ReagentFile = open('C:\\Users\SK\Desktop\Bars\REAGENT.csv', newline='\n')
-    reader = csv.DictReader(ReagentFile, delimiter=';')
-    i=-1
-    for r in reader:
-        if r['REF'] == REF:
-            i=1
-            break
-    ReagentFile.close()
-    if i == -1:
-        return i
+# Returns list of invoices for the last 14 days Returns customer name by invoice number
+def get_from_db(invoice_number=None):
+    cursor = _db_cursor('Trade') 
+    if invoice_number is not None:
+        request = f"select POLU from EXCEL_SHET WHERE NOM_SH = '{invoice_number}'"
     else:
-        return r
-    
+        nowdate = datetime.now()
+        daysago = nowdate - timedelta(days=14)
+        request = ("select NOM_SH from EXCEL_SHET WHERE DATA BETWEEN {d'%(da)s'} AND {d'%(nwd)s'}"
+                  %{'da':daysago.date(), 'nwd':nowdate.date()})
+    cursor.execute(request)
+    results = []
+    for row in cursor.fetchall():
+        results.append(row[0])
+    cursor.close()
+    return(results)
 
-#res=DictFromMDB('0191-21')
-#res=GetCustomer('0191-21')
-#res = GetInvoices()
-#res = GetReagentByREF('4001210LR')
-#print(res)
+#res=get_from_db()
+res = get_invoice('1554-20')
+print(res)

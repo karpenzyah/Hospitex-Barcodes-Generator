@@ -10,7 +10,8 @@ import calendar
 
 def BNGenUrit():
     nowdate = datetime.datetime.today()
-    return str(nowdate.day)+str(nowdate.month)+str(nowdate.year)[2:]
+    #print(nowdate)
+    return '{:06}'.format(int(str(nowdate.day)+str(nowdate.month)+str(nowdate.year)[2:]))
 
 
 def EDGenUrit(Date):
@@ -77,7 +78,7 @@ def BCgenUrit(BQ, Size, ID, Vol, BN, ED, UID):
 def UritGen(HOSP, UID, SN):
     source_dir = Path.cwd()
     
-    outfile = dbf.Table(str(source_dir)+'\Bases\out.dbf', 'BC C(30); ITEM C(4); HOSP C(60); SN C(21)',codepage='cp1251')
+    outfile = dbf.Table(str(source_dir)+'\Bases\outUrit.dbf', 'BC C(30); ITEM C(4); HOSP C(60); SN C(21); ED C(5); REF C(9)',codepage='cp1251')
     outfile.open(dbf.READ_WRITE)
 
     csvfile = open(str(source_dir)+'\\Urit task.csv', newline='\n')
@@ -88,22 +89,24 @@ def UritGen(HOSP, UID, SN):
         else:
             for j in range(1,int(prs['BQ'])+1):
                 CurrentItemBacrode = BCgenUrit(j, prs['Size'], prs['ID'], prs['Vol'], BNGenUrit(), EDGenUrit(prs['ED']), UID)
-                outfile.append({'BC': CurrentItemBacrode, 'Item': prs['Item'], 'HOSP': HOSP, 'SN': SN})                
+                outfile.append({'BC': CurrentItemBacrode, 'Item': prs['Item'], 'HOSP': HOSP, 'SN': SN, 'ED': prs['ED'][:2]+'/'+prs['ED'][2:], 'REF': prs['REF']})                
     outfile.close()
     csvfile.close()
 
-    if (os.stat(str(source_dir)+'\Bases\out.dbf').st_size)==0:
+    if (os.stat(str(source_dir)+'\Bases\outUrit.dbf').st_size)==0:
         return('UritGen - Нечего выполнять')
     else: return('UritGen - Дело сделано')
 
-HOSP = 'ООО "БелАнта"'
-UID = '2337069235'
-SN = 'LICG900V013021A-81697'
+HOSP = 'Пятигорский онкодиспансер'
+UID = '1277346393'
+SN = '8021A81042'
+
+print(BNGenUrit())
 
 source_dir = Path.cwd()
 if __name__ == "__main__":
     result = UritGen(HOSP, UID, SN)
     if result != 'UritGen - Нечего выполнять':
-        os.system(str(source_dir)+'\Bases\out.dbf')
+        os.system(str(source_dir)+'\Bases\outUrit.dbf')
     else: print(result)
 

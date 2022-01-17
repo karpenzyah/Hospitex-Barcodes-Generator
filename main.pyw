@@ -1,12 +1,10 @@
 from PyQt5 import QtWidgets, uic
 import sys
 import docx
-import re
-import csv
 import subprocess
 from TecomRobot import *
-from UritGen import UritGen
-from DBFunc import *
+from UritGen import UritGen, BCgenUrit, EDGenUrit, BNGenUrit
+import dbfunc
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
@@ -16,7 +14,7 @@ class Ui(QtWidgets.QMainWindow):
         self.doc = docx.Document('Коды приборов.docx')
         self.ROW = 0
 
-        self.invoices=GetInvoices()
+        self.invoices=GetInvoicesList()
         for invoice in reversed(self.invoices):
             #print(invoice)
             self.invoiceBox.addItem(invoice)
@@ -89,10 +87,10 @@ class Ui(QtWidgets.QMainWindow):
         #self.HospsTable.cellClicked.connect(self.on_click)
 
     def SetCustomer(self):
-        if GetCustomer(self.invoiceBox.currentText())[0] is None:
+        if get_customer(self.invoiceBox.currentText())[0] is None:
             self.customerEdit.setText('Отсутств.')
         else:    
-            st = GetCustomer(self.invoiceBox.currentText())[0]
+            st = get_customer(self.invoiceBox.currentText())[0]
             i = st.find(',')
             if i != -1:
                 stri = st[:i]
@@ -102,47 +100,35 @@ class Ui(QtWidgets.QMainWindow):
         self.ROW = self.HospsTable.currentRow()+1
 
     def GenTask(self):
+        outfile = dbf.Table(str(source_dir)+'\Bases\outUrit.dbf', 'BC C(30); ITEM C(4); HOSP C(60); SN C(21); ED C(5); REF C(9)',codepage='cp1251')
+        outfile.open(dbf.READ_WRITE)
+
         DevType = self.HospsTable.item(self.HospsTable.currentRow(),0).text()
-        source_dir = str(Path.cwd())+'\\'+ DevType + ' task'
 
-        TemplTaskFile = open(source_dir + ' template.csv', 'r', newline='\n', )
-        TaskFile = open(source_dir + '.csv', 'w', newline='\n', )
-        TemplReader = csv.DictReader(TemplTaskFile)
-        writer = csv.DictWriter(TaskFile, fieldnames = TemplReader.fieldnames, delimiter=',')
-        writer.writeheader()        
-
-        Templ = []
-        for row in TemplReader:
-            Templ.append(row) 
-
-        ReagDictRows = DictFromMDB(self.invoiceBox.currentText())
-        for row in ReagDictRows:
+        InvoiceReagents = GetInvoice(self.invoiceBox.currentText())
+        for row in InvoiceReagents:
             print(row)
             i = row['ED'].find('/')
             if i != -1:
                 ED = row['ED'][i-2:i]+row['ED'][i+3:i+5]
-            ID = ''
-            Size=''
-            reag = []
 
-            reag = GetReagentByREF(row['REF'])
-            if reag!=-1:
-                print(reag)
-                for k in range(len(Templ)):
-                    if Templ[k]['Item']==reag['Item']:
-                        ID = Templ[k]['ID']
-                        Size = Templ[k]['Size']
-            else: 
-                continue
+            Size = int(row['URIT'])
+            ID = row['URIT_ID']
+            Vol = int(row['R1Vol'])+int(row['R2Vol'])
+            BN = BNGenUrit()
 
-            if DevType == 'Tecom':
-                writer.writerow({'Item': reag['Item'], 'ID': ID, 'BQ': int(row['BQ']), 'Vol': int(reag['VolR1'])+int(reag['VolR2']), 'ED': ED, 'REF': row['REF']})
-            else:
-                writer.writerow({ 'ID': ID, 'Item': reag['Item'], 'BQ': '{:04}'.format(int(row['BQ'])), 'Size': Size, 'Vol': '{:04}'.format(int(reag['VolR1'])+int(reag['VolR2'])), 'ED': ED, 'REF': row['REF']})
-                #print(Trow['ID'], reag['Item'], int(row['BQ']), int(reag['VolR1'])+int(reag['VolR2']), row['ED'][i-2:i+5], row['REF'])
 
-        TaskFile.close()
-        TemplTaskFile.close()
+
+
+            #if DevType == 'Urit':
+            #    for j in range(1,int(row['BQ'])+1):
+            #        CurrentItemBacrode = BCgenUrit(j, ['Size'], prs['ID'], prs['Vol'], BNGenUrit(), EDGenUrit(prs['ED']), UID)
+            #        outfile.append({'BC': CurrentItemBacrode, 'Item': prs['Item'], 'HOSP': HOSP, 'SN': SN, 'ED': prs['ED'][:2]+'/'+prs['ED'][2:], 'REF': prs['REF']})
+            #    writer.writerow({'Item': reag['Item'], 'ID': ID, 'BQ': int(row['BQ']), 'Vol': int(reag['VolR1'])+int(reag['VolR2']), 'ED': ED, 'REF': row['REF']})
+            #else:
+            #    writer.writerow({ 'ID': ID, 'Item': reag['Item'], 'BQ': '{:04}'.format(int(row['BQ'])), 'Size': Size, 'Vol': '{:04}'.format(int(reag['VolR1'])+int(reag['VolR2'])), 'ED': ED, 'REF': row['REF']})
+            #    #print(Trow['ID'], reag['Item'], int(row['BQ']), int(reag['VolR1'])+int(reag['VolR2']), row['ED'][i-2:i+5], row['REF'])
+        outfile.close()
 
 
         
