@@ -22,7 +22,7 @@ def ed_gen_tecom(date):
     d = calendar.monthrange(int(y), int(m))[1]
     return y + '.' + str(d) + '.' + m
 
-# Как можно переписать это говно поизящнее?
+# Как можно переписать эту функцию поизящнее?
 def ui_select(ui_index_1=0, ui_index_2=None, ui_index_3=None):
     if ui_index_1 != 0:
         return UIDesktop.UIOSelector_Get_UIO(
