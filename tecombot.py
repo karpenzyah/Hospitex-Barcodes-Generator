@@ -4,24 +4,10 @@ import os
 import subprocess
 import time
 from datetime import datetime
-from pathlib import *
+from configparser import *
 
 import dbf
-import psutil
 from pyOpenRPA.Robot import UIDesktop
-
-
-def is_gen_running():
-    for proc in psutil.process_iter():
-        try:
-            if proc.name() == "Reagent serial number generator_RUS.exe":
-                return
-        except(
-        psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    subprocess.Popen(
-        r'\\Server\work\technical_support\Баркоды\Генератор бар-кода 100 (новый)\Reagent serial number generator_RUS.exe')
-    time.sleep(3)
 
 
 def bn_gen_tecom():
@@ -53,8 +39,11 @@ def ui_select(ui_index_1=0, ui_index_2=None, ui_index_3=None):
              {"ctrl_index": ui_index_3}])
 
 
-def bc_gen_tecom(bq, item, vol, ed, uid, hosp, sn):
-    is_gen_running()
+def bc_gen_tecom(bq, id, item, vol, ed, uid, hosp, sn, ref):
+    _conf = ConfigParser()
+    _conf.read("Settings.ini", encoding="utf-8")
+    subprocess.Popen(_conf['PathTo']['TecomGenerator'])
+    time.sleep(3)
     bn = bn_gen_tecom()
     window_generator_ui = UIDesktop.UIOSelector_Get_UIO([{
         "title": "To generate Reagent number verification",
@@ -63,7 +52,7 @@ def bc_gen_tecom(bq, item, vol, ed, uid, hosp, sn):
     window_generator_ui.set_focus()
 
     item_ui = ui_select(ui_index_1=22)  # Reagent code field
-    item_ui.set_text(item)
+    item_ui.set_text(id)
 
     bn_f_ui = ui_select(ui_index_2=17)  # Fist batch number
     bn_f_ui.set_text(str(bn))
@@ -73,7 +62,7 @@ def bc_gen_tecom(bq, item, vol, ed, uid, hosp, sn):
 
     ed_ui = ui_select(ui_index_1=13)  # Expiry date field
     ed_ui.click_input()
-    ed_ui.type_keys(ed)
+    ed_ui.type_keys(ed_gen_tecom(ed))
 
     uid_ui = ui_select(ui_index_2=0)  # Device UID field
     uid_ui.set_text(uid)
@@ -81,28 +70,30 @@ def bc_gen_tecom(bq, item, vol, ed, uid, hosp, sn):
     vol_ui = ui_select(ui_index_2=19)  # Reagent volume
 
     vol_values = vol_ui.item_texts()
-    iVals = [0] * len(vol_values)
+    i_vals = [0] * len(vol_values)
     for val in vol_values:
-        iVals[vol_values.index(val)] = int(val[4:len(val) - 2])
-    sorted_values = sorted(enumerate(iVals), key=lambda i: i[1])
+        i_vals[vol_values.index(val)] = int(val[4:len(val) - 2])
+    sorted_values = sorted(enumerate(i_vals), key=lambda k: k[1])
+    stop_sorting_index = []
     for i in range(len(sorted_values)):
         if sorted_values[i][1] >= vol:  # Closest volume value
+            stop_sorting_index = i
             break
-    vol_ui.select(sorted_values[i][0])  # Setting volume by original index
+    vol_ui.select(
+        sorted_values[stop_sorting_index][0]
+    )  # Setting volume by original index
 
     generate_btn_ui = ui_select(ui_index_2=13)
     generate_btn_ui.click()
 
     list_with_codes_ui = ui_select(ui_index_2=14, ui_index_3=1)
-    code = (list_with_codes_ui .window_text()).split('             Passed\r\n')
+    code = (list_with_codes_ui.window_text()).split('             Passed\r\n')
 
     bar_codes = []
     for i in range(0, len(code) - 1):
         bar_codes.append(code[i][19:])
     print(bar_codes)
-
-    source_dir = Path.cwd()
-    outfile = dbf.Table(str(source_dir) + r'\Bases\outTecom.dbf',
+    outfile = dbf.Table(r'Bases\outTecom.dbf',
                         'ITEM C(4); '
                         'BC C(13); '
                         'REF C(9); '
@@ -123,24 +114,26 @@ def bc_gen_tecom(bq, item, vol, ed, uid, hosp, sn):
         )
     outfile.close()
 
+
 if __name__ == "__main__":
     _hosp = 'ООО "Айболит", г. Иваново'
     _uid = 'LICG900V03L2-E1577B2CF180D'
     _sn = 'LICG900V03L2-E1577'
 
-    source_dir = Path.cwd()
-    task_file = open(str(source_dir) + '\Tecom task.csv', newline='\n')
+    task_file = open(r'Tecom task.csv', newline='\n')
     reader = csv.DictReader(task_file)
     for prs in reader:
-        if prs['bq'] == '0000':
+        if prs['BQ'] == '0000':
             continue
         else:
-            bc_gen_tecom(int(prs['BQ'],
-                             prs['Item'],
-                             prs['Vol'],
-                ed_gen_tecom(prs['ED']),
-                             _uid,
-                             _hosp,
-                             _sn)
+            bc_gen_tecom(int(prs['BQ']),
+                         prs['ID'],
+                         prs['Item'],
+                         int(prs['Vol']),
+                         prs['ED'],
+                         _uid,
+                         _hosp,
+                         _sn,
+                         prs['REF'])
     task_file.close()
-    os.system(str(source_dir) + '\Bases\\outTecom.dbf')
+    os.system(r'Bases\outTecom.dbf')
