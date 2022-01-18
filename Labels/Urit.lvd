@@ -1,0 +1,12 @@
+Teklynx LabelView: Label Variable Definitions File
+
+Имя файла                     C:\Users\SK\Desktop\Bars\Labels\Urit.lbl
+Принтер:                      DATAMAX DMX E-4203 on Ne02:
+
+Имя поля:                     "TEXT7"
+Источник:                     dBase
+Подсказка:                    ""
+Длина строки:                 4
+База данных:                  outUrit
+Ключевое поле:                BC
+Field Type:                   Текст 
