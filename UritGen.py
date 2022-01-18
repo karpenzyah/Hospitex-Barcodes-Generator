@@ -7,14 +7,13 @@ import win32api
 import calendar
 
 
-
-def BNGenUrit():
+def _bn_urit():
     nowdate = datetime.datetime.today()
     #print(nowdate)
     return '{:06}'.format(int(str(nowdate.day)+str(nowdate.month)+str(nowdate.year)[2:]))
 
 
-def EDGenUrit(Date):
+def _ed_urit(Date):
     Y = '20'+Date[2:]
     M = Date[:2]
     D = calendar.monthrange(int(Y), int(M))[1]
@@ -88,7 +87,7 @@ def UritGen(HOSP, UID, SN):
             continue
         else:
             for j in range(1,int(prs['BQ'])+1):
-                CurrentItemBacrode = BCgenUrit(j, prs['Size'], prs['ID'], prs['Vol'], BNGenUrit(), EDGenUrit(prs['ED']), UID)
+                CurrentItemBacrode = BCgenUrit(j, prs['Size'], prs['ID'], prs['Vol'], _bn_urit(), _ed_urit(prs['ED']), UID)
                 outfile.append({'BC': CurrentItemBacrode, 'Item': prs['Item'], 'HOSP': HOSP, 'SN': SN, 'ED': prs['ED'][:2]+'/'+prs['ED'][2:], 'REF': prs['REF']})                
     outfile.close()
     csvfile.close()
@@ -101,7 +100,7 @@ HOSP = 'Пятигорский онкодиспансер'
 UID = '1277346393'
 SN = '8021A81042'
 
-print(BNGenUrit())
+print(_bn_urit())
 
 source_dir = Path.cwd()
 if __name__ == "__main__":

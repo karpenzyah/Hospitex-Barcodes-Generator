@@ -39,7 +39,7 @@ def get_invoice(invoice_n):
     for row in trade_cursor.fetchall():
         goods_cursor.execute(
             "select ITEM, R1_VOL, R2_VOL, URIT_ID, URIT_SIZE, TECOM_ID "
-            "from EXCEL_KART WHERE KOD = '%s'" % row[0])
+            "from EXCEL_KART where KOD = '%s'" % row[0])
         params = goods_cursor.fetchone()
         if params[0] is None:
             continue
