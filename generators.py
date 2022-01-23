@@ -3,15 +3,25 @@ from datetime import *
 
 import pyodbc
 
-class generator:
-    def __init__(self, dev_name):
-        self.name = dev_name
+class Generator:
+    def __init__(self, dev_name, window_ui=None):
+        self.dev_name = dev_name
+        self.window_ui = window_ui
 
     def __repr__(self):
         return self.name
 
-    @staticmethod
-    def expiry_date(self.date):
+    def ui_select(self,*ui_indexes):
+        # ui_select_args = [{"title": "To generate Reagent number verification",
+        #                    "class_name": "ThunderRT6FormDC",
+        #                    "backend": "win32"}]
+        ui_select_args = [self.window_ui]
+        for ui_index in ui_indexes:
+            ui_select_args.append(dict(ctrl_index=ui_index))
+        return UIDesktop.UIOSelector_Get_UIO(ui_select_args)
+
+    @classmethod
+    def expiry_date(cls,date):
         Y = '20'+Date[2:]
         M = Date[:2]
         D = calendar.monthrange(int(Y), int(M))[1]

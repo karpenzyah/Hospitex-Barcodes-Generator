@@ -1,4 +1,3 @@
-import calendar
 import csv
 import os
 import subprocess
@@ -9,62 +8,43 @@ from configparser import *
 import dbf
 from pyOpenRPA.Robot import UIDesktop
 
-import generators
+from generators import Generator
 
-class TecomGenerator(generator):
 
-    @staticmethod
-    def bn_gen():
+class TecomGenerator(Generator):
+
+    @classmethod
+    def bn_gen(cls):
         now_date = datetime.today()
         return '{:02}'.format(now_date.day) + \
                '{:02}'.format(now_date.month + datetime.weekday(now_date))
 
-    @staticmethod
-    def ui_select(ui_index_1=0, ui_index_2=None, ui_index_3=None):
-        if ui_index_1 != 0:
-            return UIDesktop.UIOSelector_Get_UIO(
-                [{"class_name": "ThunderRT6FormDC", "backend": "win32"},
-                 {"ctrl_index": ui_index_1}])
-        elif ui_index_2 is not None and ui_index_3 is None:
-            return UIDesktop.UIOSelector_Get_UIO(
-                [{"class_name": "ThunderRT6FormDC", "backend": "win32"},
-                 {"ctrl_index": ui_index_1}, {"ctrl_index": ui_index_2}])
-        elif ui_index_3 is not None:
-            return UIDesktop.UIOSelector_Get_UIO(
-                [{"class_name": "ThunderRT6FormDC", "backend": "win32"},
-                 {"ctrl_index": ui_index_1}, {"ctrl_index": ui_index_2},
-                 {"ctrl_index": ui_index_3}])
-
-
     def generate_barcode(self, bq, id, item, vol, ed, uid, hosp, sn, ref):
-        _conf = ConfigParser()
-        _conf.read("Settings.ini", encoding="utf-8")
-        subprocess.Popen(_conf['PathTo']['TecomGenerator'])
+        conf = ConfigParser()
+        conf.read("Settings.ini", encoding="utf-8")
+        subprocess.Popen(conf['PathTo'][f'{self.dev_name}Generator'])
         time.sleep(3)
-        bn = bn_gen_tecom()
-        window_generator_ui = UIDesktop.UIOSelector_Get_UIO([{
-            "title": "To generate Reagent number verification",
-            "class_name": "ThunderRT6FormDC",
-            "backend": "win32"}])
+        bn = TecomGenerator.bn_gen()
+        window_generator_ui = self.ui_select()
         window_generator_ui.set_focus()
 
-        item_ui = ui_select(ui_index_1=22)  # Reagent code field
+        item_ui = self.ui_select(22)  # Reagent code field
         item_ui.set_text(id)
 
-        bn_f_ui = ui_select(ui_index_2=17)  # Fist batch number
+        bn_f_ui = self.ui_select(0, 17)  # Fist batch number
         bn_f_ui.set_text(str(bn))
 
-        bn_l_ui = ui_select(ui_index_2=9)  # Last batch number
+        bn_l_ui = self.ui_select(0, 9)  # Last batch number
         bn_l_ui.set_text(str(int(bn) + bq - 1))
 
-        ed_ui = ui_select(ui_index_1=13)  # Expiry date field
+        ed_ui = self.ui_select(13)  # Expiry date field
         ed_ui.click_input()
-        ed_ui.type_keys(ed_gen_tecom(ed))
+        ed_ui.type_keys(self.expiry_date(ed))
 
-        uid_ui = ui_select(ui_index_2=0)  # Device UID field
+        uid_ui = self.ui_select(0, 0)  # Device UID field
         uid_ui.set_text(uid)
 
-        vol_ui = ui_select(ui_index_2=19)  # Reagent volume
+        vol_ui = self.ui_select(0, 19)  # Reagent volume
 
         vol_values = vol_ui.item_texts()
         i_vals = [0] * len(vol_values)
@@ -80,11 +60,12 @@ class TecomGenerator(generator):
             sorted_values[stop_sorting_index][0]
         )  # Setting volume by original index
 
-        generate_btn_ui = ui_select(ui_index_2=13)
+        generate_btn_ui = self.ui_select(0, 13)
         generate_btn_ui.click()
 
-        list_with_codes_ui = ui_select(ui_index_2=14, ui_index_3=1)
-        code = (list_with_codes_ui.window_text()).split('             Passed\r\n')
+        list_with_codes_ui = self.ui_select(0, 14, 1)
+        code = (list_with_codes_ui.window_text()).split(
+            '             Passed\r\n')
 
         bar_codes = []
         for i in range(0, len(code) - 1):
@@ -125,13 +106,13 @@ if __name__ == "__main__":
             continue
         else:
             tecom_gen.generate_barcode(int(prs['BQ']),
-                                         prs['ID'],
-                                         prs['Item'],
-                                         int(prs['Vol']),
-                                         prs['ED'],
-                                         _uid,
-                                         _hosp,
-                                         _sn,
-                                         prs['REF'])
+                                       prs['ID'],
+                                       prs['Item'],
+                                       int(prs['Vol']),
+                                       prs['ED'],
+                                       _uid,
+                                       _hosp,
+                                       _sn,
+                                       prs['REF'])
     task_file.close()
     os.system(r'Bases\outTecom.dbf')
