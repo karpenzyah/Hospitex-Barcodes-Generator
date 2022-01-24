@@ -94,7 +94,10 @@ class TecomGenerator(Generator):
 
 
 if __name__ == "__main__":
-    tecom_gen = TecomGenerator('Tecom')
+    tecom_gen = TecomGenerator('Tecom',
+                               {"title": "To generate Reagent number verification",
+                                "class_name": "ThunderRT6FormDC",
+                                "backend": "win32"})
     _hosp = 'ООО "Айболит", г. Иваново'
     _uid = 'LICG900V03L2-E1577B2CF180D'
     _sn = 'LICG900V03L2-E1577'

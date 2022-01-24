@@ -1,5 +1,7 @@
 from configparser import *
 from datetime import *
+from pyOpenRPA.Robot import UIDesktop
+import calendar
 
 import pyodbc
 
@@ -11,10 +13,7 @@ class Generator:
     def __repr__(self):
         return self.name
 
-    def ui_select(self,*ui_indexes):
-        # ui_select_args = [{"title": "To generate Reagent number verification",
-        #                    "class_name": "ThunderRT6FormDC",
-        #                    "backend": "win32"}]
+    def ui_select(self, *ui_indexes):
         ui_select_args = [self.window_ui]
         for ui_index in ui_indexes:
             ui_select_args.append(dict(ctrl_index=ui_index))
@@ -22,17 +21,17 @@ class Generator:
 
     @classmethod
     def expiry_date(cls,date):
-        Y = '20'+Date[2:]
-        M = Date[:2]
-        D = calendar.monthrange(int(Y), int(M))[1]
-        return str(D)+M+Y
+        y = '20'+date[2:]
+        m  = date[:2]
+        d = calendar.monthrange(int(y), int(m))[1]
+        return str(d)+m+y
 
 class HospitexDB:
 
     def __init__(self, db_name):
         conf = ConfigParser()
         conf.read("Settings.ini")
-        self.path_to_db = conf['PathTo'][db_name + 'Database']
+        self.path_to_db = conf['PathTo']['{0}Database'.format(db_name)]
 
     def db_request(self, request):
         connection = pyodbc.connect(
@@ -42,11 +41,11 @@ class HospitexDB:
         cursor.execute(request)
         results = []
         for row in cursor.fetchall():
-            results.append(row[0])
+            results.append(row)
         cursor.close()
         return results
 
-doc = docx.Document('Коды приборов.docx')
+#doc = docx.Document('Коды приборов.docx')
 
 def get_hosps(customer_text):
 
@@ -70,60 +69,50 @@ def get_hosps(customer_text):
         return newtable
 
 def get_invoice(invoice_n):
-    trade_cursor = _db_cursor('Trade')
-    goods_cursor = _db_cursor('Goods')
-    trade_cursor.execute(
-        f"select KOD, PRIM_NAKL, QT from EXCEL_DATA where NOM_SH='{invoice_n}'"
-    )
-
-    columns = [
-        'ITEM',
-        'R1Vol',
-        'R2Vol',
-        'URIT_ID',
-        'URIT_SIZE',
-        'TECOM_ID',
-        'REF',
-        'ED',
-        'BQ'
-    ]
+    trade_db = HospitexDB("Trade")
+    goods_db = HospitexDB("Goods")
+    columns = ['ITEM', 'R1Vol', 'R2Vol', 'URIT_ID', 'URIT_SIZE', 'TECOM_ID',
+               'REF', 'ED', 'BQ']
     results = []
-    for row in trade_cursor.fetchall():
-        goods_cursor.execute(
-            "select ITEM, R1_VOL, R2_VOL, URIT_ID, URIT_SIZE, TECOM_ID "
-            "from EXCEL_KART where KOD = '%s'" % row[0])
-        params = goods_cursor.fetchone()
-        if params[0] is None:
+    res = trade_db.db_request(
+        f"select KOD, PRIM_NAKL, QT from EXCEL_DATA where NOM_SH='{invoice_n}'"
+        )
+    params = []
+    for row in res:
+        params = goods_db.db_request(
+            "SELECT ITEM, R1_VOL, R2_VOL, URIT_ID, URIT_SIZE, TECOM_ID "
+            "FROM EXCEL_KART INNER JOIN BARCODE "
+            "ON EXCEL_KART.KOD = BARCODE.KOD "
+            "WHERE BARCODE.KOD = '%s'" % row[0])
+        if len(params) == 0:
             continue
         else:
-            results.append(dict(zip(columns, list(params) + list(row))))
-    trade_cursor.close()
-    goods_cursor.close()
+            results.append(dict(zip(columns, list(*params) + list(row))))j,
     return results
 
-
-# Returns list of invoices for the last 14 days or
-# customer name by invoice number
-def get_from_db(invoice_number=None):
-    cursor = _db_cursor('Trade')
-    if invoice_number is not None:
-        request = "select POLU from EXCEL_SHET " \
-                  f"where NOM_SH = '{invoice_number}'"
-    else:
-        now_date = datetime.now()
-        days_ago = now_date - timedelta(days=14)
-        request = ("select NOM_SH from EXCEL_SHET "
-                   "where DATA between {d'%(da)s'} and {d'%(nwd)s'}"
-                   % {'da': days_ago.date(), 'nwd': now_date.date()}
-                   )
-    cursor.execute(request)
-    results = []
-    for row in cursor.fetchall():
-        results.append(row[0])
-    cursor.close()
-    return results
-
-
+# # Returns list of invoices for the last 14 days or
+# # customer name by invoice number
+# def get_from_db(invoice_number=None):
+#     cursor = _db_cursor('Trade')
+#     if invoice_number is not None:
+#         request = "select POLU from EXCEL_SHET " \
+#                   f"where NOM_SH = '{invoice_number}'"
+#     else:
+#         now_date = datetime.now()
+#         days_ago = now_date - timedelta(days=14)
+#         request = ("select NOM_SH from EXCEL_SHET "
+#                    "where DATA between {d'%(da)s'} and {d'%(nwd)s'}"
+#                    % {'da': days_ago.date(), 'nwd': now_date.date()}
+#                    )
+#     cursor.execute(request)
+#     results = []
+#     for row in cursor.fetchall():
+#         results.append(row[0])
+#     cursor.close()
+#     return results
+#
+#
 # res=get_from_db()
 res = get_invoice('1554-20')
 print(res)
+
