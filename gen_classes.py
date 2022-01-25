@@ -24,7 +24,7 @@ class Generator:
         y = '20'+date[2:]
         m  = date[:2]
         d = calendar.monthrange(int(y), int(m))[1]
-        return str(d)+m+y
+        return y+'.'+str(d)+'.'+m
 
 class HospitexDB:
 

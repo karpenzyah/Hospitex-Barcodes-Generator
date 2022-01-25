@@ -8,10 +8,20 @@ from configparser import *
 import dbf
 from pyOpenRPA.Robot import UIDesktop
 
-from aux import Generator
+from gen_classes import Generator
 
 
 class TecomGenerator(Generator):
+
+    def __init__(self, dev_name, window_ui):
+        self.dev_name = dev_name
+        self.window_ui = window_ui
+        conf = ConfigParser()
+        conf.read("Settings.ini", encoding="utf-8")
+        subprocess.Popen(conf['PathTo'][f'{self.dev_name}Generator'])
+        time.sleep(3)
+        self.barcodes = []
+        self.gen_params = []
 
     @classmethod
     def bn_gen(cls):
@@ -20,10 +30,6 @@ class TecomGenerator(Generator):
                '{:02}'.format(now_date.month + datetime.weekday(now_date))
 
     def generate_barcode(self, bq, id, item, vol, ed, uid, hosp, sn, ref):
-        conf = ConfigParser()
-        conf.read("Settings.ini", encoding="utf-8")
-        subprocess.Popen(conf['PathTo'][f'{self.dev_name}Generator'])
-        time.sleep(3)
         bn = TecomGenerator.bn_gen()
         window_generator_ui = self.ui_select()
         window_generator_ui.set_focus()
@@ -39,7 +45,8 @@ class TecomGenerator(Generator):
 
         ed_ui = self.ui_select(13)  # Expiry date field
         ed_ui.click_input()
-        ed_ui.type_keys(self.expiry_date(ed))
+        ed = self.expiry_date(ed)
+        ed_ui.type_keys(ed)
 
         uid_ui = self.ui_select(0, 0)  # Device UID field
         uid_ui.set_text(uid)
@@ -67,31 +74,35 @@ class TecomGenerator(Generator):
         code = (list_with_codes_ui.window_text()).split(
             '             Passed\r\n')
 
-        bar_codes = []
-        for i in range(0, len(code) - 1):
-            bar_codes.append(code[i][19:])
-        print(bar_codes)
-        outfile = dbf.Table(r'Bases\outTecom.dbf',
-                            'ITEM C(4); '
-                            'BC C(13); '
-                            'REF C(9); '
-                            'ED C(5); '
-                            'HOSP C(60);  '
-                            'SN C(21)',
-                            codepage='cp1251')
-        outfile.open(dbf.READ_WRITE)
+        self.gen_params.append({'item': item,
+                               'ref': ref,
+                               'ed': ed,
+                               'hosp': hosp,
+                               'sn': sn})
+        self.barcodes.append(code[:][19:])
 
-        for i_bc in range(int(bq)):
-            outfile.append(
-                {'ITEM': item,
-                 'BC': bar_codes[i_bc],
-                 'REF': ref,
-                 'ED': ed[:2] + '/' + ed[2:],
-                 'HOSP': hosp,
-                 'SN': sn}
-            )
-        outfile.close()
 
+    # def write_to_dbf(self, 'path_to_file')
+    #     outfile = dbf.Table(f'{path_to_file}',
+    #                         'ITEM C(4); '
+    #                         'BC C(13); '
+    #                         'REF C(9); '
+    #                         'ED C(5); '
+    #                         'HOSP C(60);  '
+    #                         'SN C(21)',
+    #                         codepage='cp1251')
+    #     outfile.open(dbf.READ_WRITE)
+    #
+    #     for i_bc in range(int(bq)):
+    #         outfile.append(
+    #             {'ITEM': item,
+    #              'BC': bar_codes[i_bc],
+    #              'REF': ref,
+    #              'ED': ed[:2] + '/' + ed[2:],
+    #              'HOSP': hosp,
+    #              'SN': sn}
+    #         )
+    #     outfile.close()
 
 if __name__ == "__main__":
     tecom_gen = TecomGenerator('Tecom',
@@ -118,4 +129,8 @@ if __name__ == "__main__":
                                        _sn,
                                        prs['REF'])
     task_file.close()
-    os.system(r'Bases\outTecom.dbf')
+    #os.system(r'Bases\outTecom.dbf')
+    res = tecom_gen.gen_params
+    res1 = tecom_gen.barcodes
+    print(res)
+    print(res1)
