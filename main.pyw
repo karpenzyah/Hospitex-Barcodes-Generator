@@ -2,7 +2,7 @@ from PyQt5 import QtWidgets, uic
 import sys
 import docx
 import subprocess
-import generators
+import aux
 
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):

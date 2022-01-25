@@ -87,7 +87,7 @@ def get_invoice(invoice_n):
         if len(params) == 0:
             continue
         else:
-            results.append(dict(zip(columns, list(*params) + list(row))))j,
+            results.append(dict(zip(columns, list(*params) + list(row))))
     return results
 
 # # Returns list of invoices for the last 14 days or

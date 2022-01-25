@@ -8,7 +8,7 @@ from configparser import *
 import dbf
 from pyOpenRPA.Robot import UIDesktop
 
-from generators import Generator
+from aux import Generator
 
 
 class TecomGenerator(Generator):
@@ -98,9 +98,9 @@ if __name__ == "__main__":
                                {"title": "To generate Reagent number verification",
                                 "class_name": "ThunderRT6FormDC",
                                 "backend": "win32"})
-    _hosp = 'ООО "Айболит", г. Иваново'
-    _uid = 'LICG900V03L2-E1577B2CF180D'
-    _sn = 'LICG900V03L2-E1577'
+    _hosp = '"Ветпомощь Оберег", г. Москва'
+    _uid = 'LICG900V03L2-E1634BAC241E6'
+    _sn = 'LICG900V03L2-E1634'
 
     task_file = open(r'Tecom task.csv', newline='\n')
     reader = csv.DictReader(task_file)
