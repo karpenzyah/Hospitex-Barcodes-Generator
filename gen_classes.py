@@ -7,10 +7,21 @@ import time
 
 import pyodbc
 
+# def IsRunning():
+#     while True:
+#         for proc in psutil.process_iter():
+#             if proc.name() == "Reagent serial number generator_RUS.exe":
+#                 return
+#         subprocess.Popen(r'\\Server\work\technical_support\Баркоды\Генератор бар-кода 100 (новый)\Reagent serial number generator_RUS.exe')
+#         time.sleep(3)
+
+
 class Generator:
-    def __init__(self, dev_name, window_ui = None):
+    def __init__(self, dev_name, hosp, sn, window_ui=None):
         self.dev_name = dev_name
-        if window_ui != None:
+        self.hosp = hosp
+        self.sn = sn
+        if window_ui is not None:
             self.window_ui = window_ui
             conf = ConfigParser()
             conf.read("Settings.ini", encoding="utf-8")
@@ -19,7 +30,7 @@ class Generator:
         self.barcodes = []
 
     def __repr__(self):
-        return self.name
+        return self.dev_name
 
     def ui_select(self, *ui_indexes):
         ui_select_args = [self.window_ui]
@@ -28,11 +39,44 @@ class Generator:
         return UIDesktop.UIOSelector_Get_UIO(ui_select_args)
 
     @classmethod
-    def expiry_date(cls,date):
-        y = '20'+date[2:]
-        m  = date[:2]
+    def expiry_date(cls, dt):
+        y = '20' + dt[2:]
+        m  = dt[:2]
         d = calendar.monthrange(int(y), int(m))[1]
         return y+'.'+str(d)+'.'+m
+
+    @classmethod
+    def bn_gen(cls):
+        now_date = datetime.today()
+        return '{:02}'.format(now_date.day) + \
+               '{:02}'.format(now_date.month + datetime.weekday(now_date))
+
+    def write_to_dbf(self, path_to_file):
+        dictrow = self.barcodes[0]
+        bc_len = len(dictrow['bcs'][0])
+        hosp_len = len(self.hosp)
+        sn_len = len(self.sn)
+        outfile = dbf.Table(f'{path_to_file}',
+                            'ITEM C(4); '
+                            f'BC C({bc_len}); '
+                            'REF C(9); '
+                            'ED C(5); '
+                            f'HOSP C({hosp_len});  '
+                            f'SN C({sn_len})',
+                            codepage='cp1251')
+        outfile.open(dbf.READ_WRITE)
+        for prms in self.barcodes:
+            for bc_r in prms['bcs']
+                outfile.append(
+                    {'ITEM': prms['item'],
+                     'BC': bc_r,
+                     'REF': prms['ref'],
+                     'ED': prms['ed'][:2] + '/' + prms['ed'][2:],
+                     'HOSP': self.hosp,
+                     'SN': self.sn}
+                )
+        outfile.close()
+
 
 class HospitexDB:
 

@@ -13,20 +13,15 @@ from gen_classes import Generator
 
 class TecomGenerator(Generator):
 
-    @classmethod
-    def bn_gen(cls):
-        now_date = datetime.today()
-        return '{:02}'.format(now_date.day) + \
-               '{:02}'.format(now_date.month + datetime.weekday(now_date))
-
-    def generate_barcode(self, bq, id, item, vol, ed, uid, hosp, sn, ref):
-        bn = TecomGenerator.bn_gen()
+    # Ввод параметров в окно генератора и генерация штрих-кодов
+    def generate_barcode(self, bq, item, item_id, vol, ed, uid, ref):
         window_generator_ui = self.ui_select()
         window_generator_ui.set_focus()
 
         item_ui = self.ui_select(22)  # Reagent code field
-        item_ui.set_text(id)
+        item_ui.set_text(item_id)
 
+        bn = self.bn_gen()
         bn_f_ui = self.ui_select(0, 17)  # Fist batch number
         bn_f_ui.set_text(str(bn))
 
@@ -69,36 +64,7 @@ class TecomGenerator(Generator):
         self.barcodes.append({'item': item,
                               'bcs': code,
                               'ref': ref,
-                              'ed': ed,
-                              'hosp': hosp,
-                              'sn': sn})
-
-    def write_to_dbf(self, path_to_file):
-        dictrow = self.barcodes[0]
-        keys = dictrow.keys()
-        caption = ''
-        for key in keys:
-            caption = caption+f'{key} C({len(dictrow[key])}); '
-        outfile = dbf.Table(f'{path_to_file}',
-                            'ITEM C(4); '
-                            'BC C(13); '
-                            'REF C(9); '
-                            'ED C(5); '
-                            'HOSP C(60);  '
-                            'SN C(21)',
-                            codepage='cp1251')
-        outfile.open(dbf.READ_WRITE)
-
-        for i_bc in range(int(bq)):
-            outfile.append(
-                {'ITEM': item,
-                 'BC': bar_codes[i_bc],
-                 'REF': ref,
-                 'ED': ed[:2] + '/' + ed[2:],
-                 'HOSP': hosp,
-                 'SN': sn}
-            )
-        outfile.close()
+                              'ed': ed})
 
 
 if __name__ == "__main__":
