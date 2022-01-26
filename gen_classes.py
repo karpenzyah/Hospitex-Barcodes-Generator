@@ -2,13 +2,21 @@ from configparser import *
 from datetime import *
 from pyOpenRPA.Robot import UIDesktop
 import calendar
+import subprocess
+import time
 
 import pyodbc
 
 class Generator:
-    def __init__(self, dev_name, window_ui=None):
+    def __init__(self, dev_name, window_ui = None):
         self.dev_name = dev_name
-        self.window_ui = window_ui
+        if window_ui != None:
+            self.window_ui = window_ui
+            conf = ConfigParser()
+            conf.read("Settings.ini", encoding="utf-8")
+            subprocess.Popen(conf['PathTo'][f'{self.dev_name}Generator'])
+            time.sleep(3)
+        self.barcodes = []
 
     def __repr__(self):
         return self.name

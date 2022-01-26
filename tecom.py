@@ -6,22 +6,12 @@ from datetime import datetime
 from configparser import *
 
 import dbf
-from pyOpenRPA.Robot import UIDesktop
+
 
 from gen_classes import Generator
 
 
 class TecomGenerator(Generator):
-
-    def __init__(self, dev_name, window_ui):
-        self.dev_name = dev_name
-        self.window_ui = window_ui
-        conf = ConfigParser()
-        conf.read("Settings.ini", encoding="utf-8")
-        subprocess.Popen(conf['PathTo'][f'{self.dev_name}Generator'])
-        time.sleep(3)
-        self.barcodes = []
-        self.gen_params = []
 
     @classmethod
     def bn_gen(cls):
@@ -59,9 +49,9 @@ class TecomGenerator(Generator):
             i_vals[vol_values.index(val)] = int(val[4:len(val) - 2])
         sorted_values = sorted(enumerate(i_vals), key=lambda k: k[1])
         stop_sorting_index = []
-        for i in range(len(sorted_values)):
-            if sorted_values[i][1] >= vol:  # Closest volume value
-                stop_sorting_index = i
+        for row in sorted_values:
+            if row[1] >= vol:  # Closest volume value
+                stop_sorting_index = sorted_values.index(row)
                 break
         vol_ui.select(
             sorted_values[stop_sorting_index][0]
@@ -71,44 +61,52 @@ class TecomGenerator(Generator):
         generate_btn_ui.click()
 
         list_with_codes_ui = self.ui_select(0, 14, 1)
-        code = (list_with_codes_ui.window_text()).split(
-            '             Passed\r\n')
+        code = list(filter(None, (list_with_codes_ui.window_text()).split(
+            '             Passed\r\n')))
+        for i in range(bq):
+            code[i] = code[i][19:]
 
-        self.gen_params.append({'item': item,
-                               'ref': ref,
-                               'ed': ed,
-                               'hosp': hosp,
-                               'sn': sn})
-        self.barcodes.append(code[:][19:])
+        self.barcodes.append({'item': item,
+                              'bcs': code,
+                              'ref': ref,
+                              'ed': ed,
+                              'hosp': hosp,
+                              'sn': sn})
 
+    def write_to_dbf(self, path_to_file):
+        dictrow = self.barcodes[0]
+        keys = dictrow.keys()
+        caption = ''
+        for key in keys:
+            caption = caption+f'{key} C({len(dictrow[key])}); '
+        outfile = dbf.Table(f'{path_to_file}',
+                            'ITEM C(4); '
+                            'BC C(13); '
+                            'REF C(9); '
+                            'ED C(5); '
+                            'HOSP C(60);  '
+                            'SN C(21)',
+                            codepage='cp1251')
+        outfile.open(dbf.READ_WRITE)
 
-    # def write_to_dbf(self, 'path_to_file')
-    #     outfile = dbf.Table(f'{path_to_file}',
-    #                         'ITEM C(4); '
-    #                         'BC C(13); '
-    #                         'REF C(9); '
-    #                         'ED C(5); '
-    #                         'HOSP C(60);  '
-    #                         'SN C(21)',
-    #                         codepage='cp1251')
-    #     outfile.open(dbf.READ_WRITE)
-    #
-    #     for i_bc in range(int(bq)):
-    #         outfile.append(
-    #             {'ITEM': item,
-    #              'BC': bar_codes[i_bc],
-    #              'REF': ref,
-    #              'ED': ed[:2] + '/' + ed[2:],
-    #              'HOSP': hosp,
-    #              'SN': sn}
-    #         )
-    #     outfile.close()
+        for i_bc in range(int(bq)):
+            outfile.append(
+                {'ITEM': item,
+                 'BC': bar_codes[i_bc],
+                 'REF': ref,
+                 'ED': ed[:2] + '/' + ed[2:],
+                 'HOSP': hosp,
+                 'SN': sn}
+            )
+        outfile.close()
+
 
 if __name__ == "__main__":
-    tecom_gen = TecomGenerator('Tecom',
-                               {"title": "To generate Reagent number verification",
-                                "class_name": "ThunderRT6FormDC",
-                                "backend": "win32"})
+    tecom = TecomGenerator('Tecom',
+                               {
+                                   "title": "To generate Reagent number verification",
+                                   "class_name": "ThunderRT6FormDC",
+                                   "backend": "win32"})
     _hosp = '"Ветпомощь Оберег", г. Москва'
     _uid = 'LICG900V03L2-E1634BAC241E6'
     _sn = 'LICG900V03L2-E1634'
@@ -119,7 +117,7 @@ if __name__ == "__main__":
         if prs['BQ'] == '0000':
             continue
         else:
-            tecom_gen.generate_barcode(int(prs['BQ']),
+            tecom.generate_barcode(int(prs['BQ']),
                                        prs['ID'],
                                        prs['Item'],
                                        int(prs['Vol']),
@@ -129,8 +127,7 @@ if __name__ == "__main__":
                                        _sn,
                                        prs['REF'])
     task_file.close()
-    #os.system(r'Bases\outTecom.dbf')
-    res = tecom_gen.gen_params
-    res1 = tecom_gen.barcodes
-    print(res)
+    # os.system(r'Bases\outTecom.dbf')
+    res1 = tecom.barcodes
+    tecom.write_to_dbf('outTecom')
     print(res1)
