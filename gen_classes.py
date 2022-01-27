@@ -34,6 +34,8 @@ class Generator:
             subprocess.Popen(self.conf['PathTo'][f'{self.dev_name}Generator'])
             time.sleep(3)
         self.barcodes = []
+        
+        
 
     def __repr__(self):
         return self.dev_name
