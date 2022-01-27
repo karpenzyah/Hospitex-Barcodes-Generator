@@ -1,20 +1,20 @@
-import csv
-import os
-import subprocess
-import time
-from datetime import datetime
-from configparser import *
-
-import dbf
-
-
-from gen_classes import Generator
+from gen_classes import Generator, HospitexDB
 
 
 class TecomGenerator(Generator):
 
     # Ввод параметров в окно генератора и генерация штрих-кодов
-    def generate_barcode(self, bq, item, item_id, vol, ed, uid, ref):
+    def generate_barcode(self, item, ref, ed, bq):
+        goods_db = HospitexDB("Goods")
+        prs = goods_db.db_request(
+            "SELECT R1_VOL, R2_VOL, TECOM_ID "
+            "FROM DEVICE_IDS INNER JOIN BARCODE "
+            "ON DEVICE_IDS.ITEM = BARCODE.ITEM "
+            "WHERE BARCODE.KOD = '%s'" % ref)
+
+        item_id = '{:02}'.format(prs[0][2])
+        vol = int(prs[0][0])+int(prs[0][1])
+
         window_generator_ui = self.ui_select()
         window_generator_ui.set_focus()
 
@@ -30,11 +30,10 @@ class TecomGenerator(Generator):
 
         ed_ui = self.ui_select(13)  # Expiry date field
         ed_ui.click_input()
-        ed = self.expiry_date(ed)
-        ed_ui.type_keys(ed)
+        ed_ui.type_keys(self.expiry_date(ed))
 
         uid_ui = self.ui_select(0, 0)  # Device UID field
-        uid_ui.set_text(uid)
+        uid_ui.set_text(self.uid)
 
         vol_ui = self.ui_select(0, 19)  # Reagent volume
 
@@ -68,32 +67,12 @@ class TecomGenerator(Generator):
 
 
 if __name__ == "__main__":
-    tecom = TecomGenerator('Tecom',
-                               {
-                                   "title": "To generate Reagent number verification",
-                                   "class_name": "ThunderRT6FormDC",
-                                   "backend": "win32"})
-    _hosp = '"Ветпомощь Оберег", г. Москва'
-    _uid = 'LICG900V03L2-E1634BAC241E6'
-    _sn = 'LICG900V03L2-E1634'
+    tecom = TecomGenerator({"title": "To generate Reagent number verification",
+                            "class_name": "ThunderRT6FormDC",
+                            "backend": "win32"})
+    if tecom.dev_name != 'Tecom':
+        print('Указан некорректный тип прибора')
+    tecom.gen_from_taskfile()
+    tecom.write_to_dbf('outTecomTest.dbf')
+    c=1
 
-    task_file = open(r'Tecom task.csv', newline='\n')
-    reader = csv.DictReader(task_file)
-    for prs in reader:
-        if prs['BQ'] == '0000':
-            continue
-        else:
-            tecom.generate_barcode(int(prs['BQ']),
-                                       prs['ID'],
-                                       prs['Item'],
-                                       int(prs['Vol']),
-                                       prs['ED'],
-                                       _uid,
-                                       _hosp,
-                                       _sn,
-                                       prs['REF'])
-    task_file.close()
-    # os.system(r'Bases\outTecom.dbf')
-    res1 = tecom.barcodes
-    tecom.write_to_dbf('outTecom')
-    print(res1)

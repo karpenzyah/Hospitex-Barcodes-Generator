@@ -11,20 +11,32 @@ import time
 import psutil
 import keyboard
 
-from gen_classes import Generator
+from gen_classes import Generator, HospitexDB
 
 
 # [{"title": "Reagent Barcode Generator", "class_name": "#32770",
 #               "backend": "win32"}])
 class BioelabGenerator(Generator):
 
-    def _generate_files(self, bq, item, vol_r1, vol_r2, ed, uid, hosp, sn,
-                         ref):
+    def generate_barcode(self, item, ref, ed, bq):
+        goods_db = HospitexDB("Goods")
+        prs = goods_db.db_request(
+            "SELECT R1_VOL, R2_VOL, BIOELAB_ID "
+            "FROM DEVICE_IDS INNER JOIN BARCODE "
+            "ON DEVICE_IDS.ITEM = BARCODE.ITEM "
+            "WHERE BARCODE.KOD = '%s'" % ref)
+
+        item_id = prs[0][2]
+        vol_r1 = str(int(prs[0][0])*bq)
+        vol_r2 = str(int(prs[0][1])*bq)
+        if int(vol_r1) > 9999:
+            vol_r1 = '9999'
+        bq=1
         generator_ui = self.ui_select()
         generator_ui.set_focus()
 
         reagent_list_ui = self.ui_select(1)
-        reagent_list_ui.select(item)
+        reagent_list_ui.select(item_id-1)
 
         ed_ui = self.ui_select(5)
         ed_ui.click_input()
@@ -35,7 +47,7 @@ class BioelabGenerator(Generator):
         first_bottle_n_ui.set_text(str(bn))
 
         last_bottle_n_ui = self.ui_select(9)
-        last_bottle_n_ui.set_text(str(bn + bq))
+        last_bottle_n_ui.set_text(str(int(bn) + bq - 1))
 
         type_ui = self.ui_select(10)
         type_ui.select(0)
@@ -46,56 +58,33 @@ class BioelabGenerator(Generator):
         add_to_list_ui = self.ui_select(0)
         add_to_list_ui.click()
 
-        if vol_r2 != 0:
+        if vol_r2 != '0':
             type_ui.select(1)
             vol_ui.set_text(vol_r2)
             add_to_list_ui.click()
 
-        # barcode_list_ui = UIDesktop.UIOSelector_Get_UIO(
-        #    [{"class_name": "#32770", "backend": "win32"}, {"ctrl_index": 11}])
-        # return barcode_list_ui.texts()
-        export_ui = UIDesktop.UIOSelector_Get_UIO(
-            [{"class_name": "#32770", "backend": "win32"}, {"ctrl_index": 16}])
-        export_ui.click()
-        keyboard.send('enter')
-        keyboard.send('enter')
+        barcode_list_ui = self.ui_select(11)
+        bcs = barcode_list_ui.texts()[2::8]
 
+        del_ui = self.ui_select(13)
+        del_ui.click()
+        del_win_ui = UIDesktop.UIOSelector_Get_UIO(
+            [{"title":"Delete Barcode","class_name":"#32770","backend":"win32"},{"ctrl_index":7}])
+        del_win_ui.click()
+        ok_win_ui = UIDesktop.UIOSelector_Get_UIO(
+            [{"title":"Confirm","class_name":"#32770","backend":"win32"},{"ctrl_index":2}])
+        ok_win_ui.click()
 
-    def read_files():
-        source_dir = Path.cwd() / 'BioelabBar'
-        outfile = dbf.Table('outblab.dbf',
-                            'BCR1 C(23); BCR2 C(23); Reagent C(5); Type C(2) ; Vol C(6); HOSP C(30); DevSN C(25)')
-        outfile.open(dbf.READ_WRITE)
-
-        for curr_csv in source_dir.iterdir():
-            with open(curr_csv) as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['Type'] == 'R1':
-                        R1 = row['Barcode']
-                    else:
-                        outfile.append({'BCR1': R1, 'BCR2': row['Barcode'],
-                                        'Reagent': row['Reagent'],
-                                        'Type': row['Type'], 'Vol': row['Volume'],
-                                        'HOSP': 'RCB',
-                                        'DEVSN': 'LICG900V02AES2K0WH04053F'})
-            if row['Type'] == 'R1':
-                with open(curr_csv) as csvfile:
-                    reader = csv.DictReader(csvfile)
-                    for row in reader:
-                        outfile.append(
-                            {'BCR1': row['Barcode'], 'Reagent': row['Reagent'],
-                             'Type': row['Type'], 'Vol': row['Volume'],
-                             'HOSP': 'RCB', 'DEVSN': 'LICG900V02AES2K0WH04053F'})
-            # os.remove(curr_csv)
-        outfile.close()
-
-        if (os.stat('outblab.dbf').st_size) < 369:
-            return ('BLabRead - Нечего выполнять!')
-        else:
-            return ('BLabRead - Дело сделано!')
+        self.barcodes.append({'item': item,
+                              'bcs': bcs,
+                              'ref': ref,
+                              'ed': ed})
 
 
 if __name__ == "__main__":
-    BLabRead()
-    os.system('outblab.dbf')
+    gen = BioelabGenerator({"title": "Reagent Barcode Generator",
+                            "class_name": "#32770",
+                            "backend": "win32"})
+    #gen.gen_from_taskfile()
+    gen.gen_from_invoice('2338-21')
+    gen.write_to_dbf('outBioelabTest.dbf')
