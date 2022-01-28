@@ -8,13 +8,13 @@ class UritGenerator(Generator):
 
     def __init__(self):
         super(UritGenerator, self).__init__()
-        self.size = size
-        self.item_id = item_id
-        self.vol = vol
-        self.ed = ed
+        self.size = None
+        self.item_id = None
+        self.vol = None
+        self.ed = None
         self.bn = self.bn_gen()
-        self.ref = ref
-        self.item = item
+        self.ref = None
+        self.item = None
 
     def init_params(self, ref, ed):
         goods_db = HospitexDB("Goods")

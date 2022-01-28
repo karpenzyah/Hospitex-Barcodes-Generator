@@ -7,6 +7,7 @@ import time
 import os
 import csv
 import dbf
+import re
 
 import pyodbc
 
@@ -34,8 +35,6 @@ class Generator:
             subprocess.Popen(self.conf['PathTo'][f'{self.dev_name}Generator'])
             time.sleep(3)
         self.barcodes = []
-        
-        
 
     def __repr__(self):
         return self.dev_name
@@ -64,12 +63,13 @@ class Generator:
 
     def write_to_dbf(self, path_to_file):
         dictrow = self.barcodes[0]
-        bc_len = len(dictrow['bcs'][0])
+        bc_len = 23  # len(dictrow['bcs'][1][1])+1
         hosp_len = len(self.hosp)
         sn_len = len(self.sn)
         outfile = dbf.Table(f'{path_to_file}',
                             'ITEM C(5); '
-                            f'BC C({bc_len+2}); '
+                            f'BCR1 C({bc_len}); '
+                            f'BCR2 C({bc_len}); '
                             'REF C(9); '
                             'ED C(5); '
                             f'HOSP C({hosp_len});  '
@@ -77,11 +77,23 @@ class Generator:
                             codepage='cp1251')
         outfile.open(dbf.READ_WRITE)
         for prms in self.barcodes:
-            for bc_r in prms['bcs']:
-                ed = prms['ed'][:2] + '/' + prms['ed'][2:]
+            ed = prms['ed'][:2] + '/' + prms['ed'][2:]
+            r_flag = prms['bcs'][0]
+            bcs = prms['bcs'][1]
+            bc_r1 = [''] * r_flag.count('R1')
+            bc_r2 = [''] * r_flag.count('R1')
+            j = 0
+            for i in range(len(bcs)):
+                if r_flag[i] == "R1" or prms['item'] == 'TBDB':
+                    bc_r1[j] = bcs[i]
+                    j += 1
+                else:
+                    bc_r2[j - 1] = bcs[i]
+            for i in range(len(bc_r1)):
                 outfile.append(
                     {'ITEM': prms['item'],
-                     'BC': bc_r,
+                     'BCR1': bc_r1[i],
+                     'BCR2': bc_r2[i],
                      'REF': prms['ref'],
                      'ED': ed,
                      'HOSP': self.hosp,
@@ -101,36 +113,53 @@ class Generator:
                                       prs['ed'],
                                       int(prs['bq']))
 
-    def gen_from_invoice(self, invoice_n):
-
+    def gen_from_invoice(self):
+        invoice_ns = self.conf['Parameters']['InvoiceN'].split(',')
         trade_db = HospitexDB("Trade")
         goods_db = HospitexDB("Goods")
-        res = trade_db.db_request(
-            f"select KOD, PRIM_NAKL, QT from EXCEL_DATA where NOM_SH='{invoice_n}' "
-        )
-        params = []
-        for row in res:
-            ref = row[0]
-            params = goods_db.db_request(
-                "SELECT ITEM "
-                "FROM EXCEL_KART INNER JOIN BARCODE "
-                "ON EXCEL_KART.KOD = BARCODE.KOD "
-                "WHERE BARCODE.KOD = '%s'" % ref)
-            if len(params) == 0:
-                continue
-            else:
-                item = params[0][0]
-                i = row[1].find('/')
-                if i != -1:
-                    ed = row[1][i - 2:i] + row[1][i + 3:i + 5]
+        parameters = []
+        for invoice_n in invoice_ns:
+            print('Подготовка задания по счету №', invoice_n)
+            res = trade_db.db_request(
+                f"select KOD, PRIM_NAKL, QT, VIBOR from EXCEL_DATA where NOM_SH='{invoice_n}' AND VIBOR = TRUE "
+            )
+            for row in res:
+                # print(row)
+                ref = row[0]
+                params = goods_db.db_request(
+                    "SELECT ITEM "
+                    "FROM EXCEL_KART INNER JOIN BARCODE "
+                    "ON EXCEL_KART.KOD = BARCODE.KOD "
+                    "WHERE BARCODE.KOD = '%s'" % ref)
+                if len(params) == 0:
+                    continue
                 else:
-                    print('Не удалось получить срок годности')
-                bq = int(row[2])
-                self.generate_barcode(item,
-                                      ref,
-                                      ed,
-                                      bq)
+                    item = params[0][0]
 
+                    if row[1] is None:
+                        row[1] = input(
+                            f'Введите срок годности для {item} в формате ММ/ГГГГ:  \n')
+                    search = re.search('\d\d/\d{4}', row[1])
+                    if search is None:
+                        ed_r = input(
+                            f'Введите срок годности для {item} в формате ММ/ГГГГ:  \n')
+                    else:
+                        ed_r = search.group(0)
+                    ed = ed_r[:2] + ed_r[5:7]
+                    bq = int(row[2])
+
+                    parameters.append([item, ref, ed, bq])
+        print('Выполнение задания')
+        for prs in parameters:
+            self.generate_barcode(*prs)
+
+    def start(self):
+        task_from_invoice = self.conf['Parameters']['TaskFromInvoice']
+        if task_from_invoice == 'Yes':
+            self.gen_from_invoice()
+        else:
+            self.gen_from_taskfile()
+        self.write_to_dbf(f'out{self.dev_name}Test.dbf')
 
 
 class HospitexDB:
