@@ -1,0 +1,176 @@
+[Language]
+Language=1033
+Description=English. It's language file.
+
+;IDD_REAGENTBARCODEGENERATOR_DIALOG
+[102]
+0=Reagent Barcode Generator
+1001=Volume
+1005=Expiry Date 
+1002=Type
+1006=Expiration
+1007=Bottle No.
+1008=~
+1018=Manufacturer No.
+1014=Add to List
+1017=Del 
+1020=Export
+3=Print
+2=Cancel
+1023 = Reagent Manufacturer Info
+1024 = Reagent List
+1025 = Reagent Info
+1026 = Barcode List
+1021 = Name
+1029 = View
+1027 = Code
+
+;IDD_BARCODEMASKREADER_DIALOG
+[103]
+0=Reagent Barcode Reader
+1004=Barcode
+2=Cancel
+
+;IDD_OPEN_CHANNEL
+[105]
+1013 = Management ID[4 digits]
+1023 = Open Channel Count
+1022 = Generate Channel Key
+
+;IDD_VIEW_HISTORY_BARCODE
+[129]
+0=View History Barcode
+1005 = Expiry date
+1006 = Barcode
+1026 = Barcode list
+1007 = Search
+1010 = Reagent Name
+1020=Export
+
+;IDD_REAGENT_SETTING
+[131]
+0 = Reagent Settings
+11214 = Reagent Manufacturer
+1104 = Manufacturer ID
+1122 = Reagent List
+1123 = Reagent Parameters
+1010 = Test Name
+1059 = Test Code
+1078 = Open Channel
+1016 = Wave Length
+1014 = Pri.
+1015 = Sec.
+1056 = Reagent Vol.
+1054 = R1
+1055 = R2
+1021 = Assay
+1041 = Sample Vol.
+1073 = Add
+1074 = Save
+1075 = Cancel
+1076 = Delete
+
+;IDD_BARCODE_OPERATE
+[140]
+0 = Delete Barcode
+1008 = Selected Barcode
+1009 = All Barcode
+1010 = Specified BottleNo
+1016 = Operate Option
+1014 = Operate
+1015 = Return
+
+;IDD_LOGIN
+[387]
+0=Pls input password
+1304=Password
+1203=Login
+1084=Cancel
+
+[Text]
+1001 = Reagent manufacturer (code: %d) does not match! Current reagent manufacturer code is (%d).
+1002 = No.
+1003 = Reagent
+1004 = Channel
+1005 = Barcode
+1006 = Type
+1007 = Volume
+1008 = Manufacturer No.
+1009 = Expiration Date
+1010 = Expiration(day)
+1011 = Bottle No.
+1012 = Open
+1013 = Close
+1014 = Reagent Volume must be between 1 and %d!
+1015 = Please choose the Reagent type!
+1016 = Please choose the Expiration!
+1017 = Please choose the Test!
+1018 = Please input Start No.!
+1019 = Please choose the Manufacturer No.!
+1020 = Start No. must not be larger than End No.!
+1021 = The barcode of the bottleNo(%d) already exists in the table, and the barcode is (%s) , please confirm and add again!
+1022 = Please select one reagent barcode!
+1023 = Export barcode to file(%s) successfully!
+1024 = Attention
+1025 = An exception occurred during the printing of the barcode (%s). The error message is (%s)!
+1026 = Load CDFPSK_u.dll Failed!
+1027 = Open Printer port Failed!Errno is (%d)
+1028 = Failed to execute the print command %d, the error code is (%d)
+1029 = End No. must be between 1 and 9999 !
+1030 = Confirm delete? 
+1031 = Confirm
+
+1100 = Pri./Sec. Wave
+1101 = Test Code
+1102 = Assay
+1103 = R1/R2 Vol.
+1104 = Sample Vol.
+1105 = 1 point end
+1106 = 2 point end
+1107 = Fixed-time
+1108 = Kinetic
+1109 = None
+1110 = If the test is closed ,then its testcode must be within %d-%d!
+1111 = Test name must contain letters, and can not be empty and length should not be greater than 7!
+1112 = Test name already exists! 
+1113 = Test Code already exists! 
+1114 = Please choose primary and vice wave! 
+1115 = Primary wave must be different from vice wave!
+1116 = Please should choose an assay! 
+1117 = R1 volume must be between 20 and 300!
+1118 = Volume must not be less than zero!
+1119 = Normal sample volume must be between 3 and 30!
+1120 = Normal Sample volume must be mulitples of 0.1!
+1121 = For 2 point end method R1 volume + normal sample volume must not be less than 150!
+1122 = R1 volume + R2 volume + normal sample volume must be between 150 and 330!
+1123 = You didn't save changes. Do you want to save?
+1124 = Confirm delete? 
+1125 = Confirm
+1126 = Delete test failed!
+1127 = For 2 point end method R2 volume must be greater than zero!
+1128 = R2 volume must either be zero or be between 10 and 300!
+1129 = Init database failed!
+1130 = If the channel of test is open ,then its testcode must not be less than 1000!
+1131 = %d barcodes already exist in the history database, confirm rewriting?
+1132 = Barcode insert history database failed, Error Message is 
+1133 = No barcode records can be exported.
+
+1200 = Barcode(%s) is invalid!
+1201 = The barcode(%s) is duplicated with the barcode(%s) in the list, please recheck!
+1202 = The Barcode(%s) expired!
+1203 = The barcode(%s) does not exist in the database!
+
+1300 = ManagementID's Length must be 4!
+1301 = The count of Open Channel must be within 0~10!
+1302 = The ID of Reagent manufacturer is invalid!
+1303 = Reagent(%d) Open Channel Key Generator
+
+1517 = Yes
+1518 = No
+1520 = OK
+1521 = Cancel
+1522 = Abort
+1523 = Retry
+1524 = Ignore
+1525 = Continue
+1526 = Abnormal
