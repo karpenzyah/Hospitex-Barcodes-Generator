@@ -25,14 +25,14 @@ class Generator:
     def __init__(self, window_ui=None):
         self.conf = ConfigParser()
         self.conf.read("Settings.ini", encoding="utf-8")
-        self.dev_name = self.conf['Parameters']['Device']
-        self.hosp = self.conf['Parameters']['Hospital']
-        self.sn = self.conf['Parameters']['DeviceSN']
+        self.dev_name = self.conf['Parameters']['device']
+        self.hosp = self.conf['Parameters']['hospital']
+        self.sn = self.conf['Parameters']['device_sn']
         if self.dev_name != 'Bioelab':
-            self.uid = self.conf['Parameters']['DeviceUID']
+            self.uid = self.conf['Parameters']['device_uid']
         if window_ui is not None:
             self.window_ui = window_ui
-            subprocess.Popen(self.conf['PathTo'][f'{self.dev_name}Generator'])
+            subprocess.Popen(self.conf['PathTo'][f'{self.dev_name.lower()}_generator'])
             time.sleep(3)
         self.barcodes = []
 
@@ -100,7 +100,8 @@ class Generator:
                      'SN': self.sn}
                 )
         outfile.close()
-        print(f'{self.barcodes.__len__()} строк записано в файл {path_to_file}')
+        print(f'{self.barcodes.__len__()} строк записано '
+              f'в файл {path_to_file}')
         os.system(path_to_file)
 
     def gen_from_taskfile(self):
@@ -115,14 +116,16 @@ class Generator:
                                       int(prs['bq']))
 
     def gen_from_invoice(self):
-        invoice_ns = self.conf['Parameters']['InvoiceN'].split(',')
+        invoice_ns = self.conf['Parameters']['invoice_n'].split(',')
         trade_db = HospitexDB("Trade")
         goods_db = HospitexDB("Goods")
         parameters = []
         for invoice_n in invoice_ns:
             print('Подготовка задания по счету №', invoice_n)
             res = trade_db.db_request(
-                f"select KOD, PRIM_NAKL, QT, VIBOR from EXCEL_DATA where NOM_SH='{invoice_n}' AND VIBOR = TRUE "
+                "select KOD, PRIM_NAKL, QT, VIBOR "
+                "from EXCEL_DATA "
+                f"where NOM_SH='{invoice_n}' AND VIBOR = TRUE "
             )
             for row in res:
                 # print(row)
@@ -139,11 +142,13 @@ class Generator:
 
                     if row[1] is None:
                         row[1] = input(
-                            f'Введите срок годности для {item} в формате ММ/ГГГГ:  \n')
+                            f'Введите срок годности для {item} '
+                            'в формате ММ/ГГГГ:  \n')
                     search = re.search('\d\d/\d{4}', row[1])
                     if search is None:
                         ed_r = input(
-                            f'Введите срок годности для {item} в формате ММ/ГГГГ:  \n')
+                            f'Введите срок годности для {item} '
+                            'в формате ММ/ГГГГ:  \n')
                     else:
                         ed_r = search.group(0)
                     ed = ed_r[:2] + ed_r[5:7]
@@ -155,7 +160,7 @@ class Generator:
             self.generate_barcode(*prs)
 
     def start(self):
-        task_from_invoice = self.conf['Parameters']['TaskFromInvoice']
+        task_from_invoice = self.conf['Parameters']['task_from_invoice']
         if task_from_invoice == 'Yes':
             self.gen_from_invoice()
         else:
@@ -168,7 +173,7 @@ class HospitexDB:
     def __init__(self, db_name):
         self.conf = ConfigParser()
         self.conf.read("Settings.ini")
-        self.path_to_db = self.conf['PathTo']['{0}Database'.format(db_name)]
+        self.path_to_db = self.conf['PathTo']['{0}_database'.format(db_name)]
 
     def db_request(self, request):
         db = ("Driver={Microsoft Access Driver (*.mdb, *.accdb)};"
@@ -181,89 +186,3 @@ class HospitexDB:
             results.append(row)
         cursor.close()
         return results
-
-# doc = docx.Document('Коды приборов.docx')
-
-# def get_hosps(customer_text):
-#     words = re.findall('\w+', customer_text)
-#     newtable = []
-#     DevTypes = ['Tecom', 'BioELab', '3 dif', 'Urit']
-#
-#     for word in words:
-#         if len(word) < 4:
-#             continue
-#         print('Поиск по "' + word + '"')
-#         for t in range(4):
-#             table = self.doc.tables[t]
-#             for r in range(1, len(table.rows)):
-#                 flag = table.cell(r, 1).text.find(word)
-#                 if flag != -1:
-#                     newtable.append([DevTypes[t], table.cell(r, 0).text,
-#                                      table.cell(r, 2).text,
-#                                      table.cell(r, 3).text])
-#     print('Поиск завершен\n')
-#     for r in range(len(newtable)):
-#         print(newtable[r])
-#     return newtable
-#
-#
-# def get_invoice(invoice_n):
-#     trade_db = HospitexDB("Trade")
-#     goods_db = HospitexDB("Goods")
-#     columns = ['ITEM', 'R1Vol', 'R2Vol', 'URIT_ID', 'URIT_SIZE', 'TECOM_ID',
-#                'REF', 'ED', 'BQ']
-#     results = []
-#     res = trade_db.db_request(
-#         f"select KOD, PRIM_NAKL, QT from EXCEL_DATA where NOM_SH='{invoice_n}'"
-#     )
-#     params = []
-#     for row in res:
-#         params = goods_db.db_request(
-#             "SELECT ITEM, R1_VOL, R2_VOL, URIT_ID, URIT_SIZE, TECOM_ID "
-#             "FROM EXCEL_KART INNER JOIN BARCODE "
-#             "ON EXCEL_KART.KOD = BARCODE.KOD "
-#             "WHERE BARCODE.KOD = '%s'" % row[0])
-#         if len(params) == 0:
-#             continue
-#         else:
-#             results.append(dict(zip(columns, list(*params) + list(row))))
-#     return results
-
-
-# # Returns list of invoices for the last 14 days or
-# # customer name by invoice number
-# def get_from_db(invoice_number=None):
-#     cursor = _db_cursor('Trade')
-#     if invoice_number is not None:
-#         request = "select POLU from EXCEL_SHET " \
-#                   f"where NOM_SH = '{invoice_number}'"
-#     else:
-#         now_date = datetime.now()
-#         days_ago = now_date - timedelta(days=14)
-#         request = ("select NOM_SH from EXCEL_SHET "
-#                    "where DATA between {d'%(da)s'} and {d'%(nwd)s'}"
-#                    % {'da': days_ago.date(), 'nwd': now_date.date()}
-#                    )
-#     cursor.execute(request)
-#     results = []
-#     for row in cursor.fetchall():
-#         results.append(row[0])
-#     cursor.close()
-#     return results
-#
-#
-
-# trade_db = HospitexDB("Trade")
-# res = trade_db.db_request(
-#         f"select KOD, PRIM_NAKL, QT from EXCEL_DATA where NOM_SH='2338-21'"
-#     )
-# goods_db = HospitexDB("Goods")
-# params = goods_db.db_request(
-#             "SELECT ITEM "
-#             "FROM EXCEL_KART INNER JOIN BARCODE "
-#             "ON EXCEL_KART.KOD = BARCODE.KOD "
-#             "WHERE BARCODE.KOD = '4001008NR'"
-# )
-# #res = get_invoice('2396-21')
-# print(res)
-# print(params)
