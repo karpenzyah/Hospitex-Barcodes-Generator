@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>920</width>
-    <height>713</height>
+    <width>692</width>
+    <height>83</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,10 +21,13 @@
     <locale language="Russian" country="Russia"/>
    </property>
    <widget class="QPushButton" name="OkBtn">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>810</x>
-      <y>680</y>
+      <x>570</x>
+      <y>40</y>
       <width>101</width>
       <height>23</height>
      </rect>
@@ -45,46 +48,13 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QTableWidget" name="HospsTable">
+   <widget class="QComboBox" name="invoice_box">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>901</width>
-      <height>601</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="searchBtn">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>10</y>
-      <width>111</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Найти приборы</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="taskBtn">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>680</y>
-      <width>191</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Сгенерировать задание по счету</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="invoiceBox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
+      <x>120</x>
       <y>10</y>
       <width>161</width>
       <height>22</height>
@@ -97,14 +67,71 @@
      <string>Введите № счета</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="customerEdit">
+   <widget class="QComboBox" name="dev_type_box">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>40</y>
-      <width>901</width>
-      <height>21</height>
+      <x>300</x>
+      <y>10</y>
+      <width>161</width>
+      <height>22</height>
      </rect>
+    </property>
+    <property name="editable">
+     <bool>true</bool>
+    </property>
+    <property name="currentText">
+     <string>Выберите тип прибора</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="hosp_box">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>10</y>
+      <width>191</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="editable">
+     <bool>true</bool>
+    </property>
+    <property name="currentText">
+     <string>Выберите прибор</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="invoice_rb">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>82</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>По № счета</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="manual_rb">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>40</y>
+      <width>82</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Вручную</string>
     </property>
    </widget>
   </widget>

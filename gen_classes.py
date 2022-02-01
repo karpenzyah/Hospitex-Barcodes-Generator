@@ -63,7 +63,7 @@ class Generator:
 
     def write_to_dbf(self, path_to_file):
         dictrow = self.barcodes[0]
-        bc_len = 23  # len(dictrow['bcs'][1][1])+1
+        bc_len = len(dictrow['bcs'][1][0])+1
         hosp_len = len(self.hosp)
         sn_len = len(self.sn)
         outfile = dbf.Table(f'{path_to_file}',
@@ -84,7 +84,7 @@ class Generator:
             bc_r2 = [''] * r_flag.count('R1')
             j = 0
             for i in range(len(bcs)):
-                if r_flag[i] == "R1" or prms['item'] == 'TBDB':
+                if r_flag[i] == "R1":
                     bc_r1[j] = bcs[i]
                     j += 1
                 else:
@@ -100,6 +100,7 @@ class Generator:
                      'SN': self.sn}
                 )
         outfile.close()
+        print(f'{self.barcodes.__len__()} строк записано в файл {path_to_file}')
         os.system(path_to_file)
 
     def gen_from_taskfile(self):
@@ -149,7 +150,7 @@ class Generator:
                     bq = int(row[2])
 
                     parameters.append([item, ref, ed, bq])
-        print('Выполнение задания')
+        print(f'Выполнение задания, кол-во позиций: {parameters.__len__()}')
         for prs in parameters:
             self.generate_barcode(*prs)
 

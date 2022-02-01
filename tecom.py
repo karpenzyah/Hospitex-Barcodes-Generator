@@ -26,7 +26,8 @@ class TecomGenerator(Generator):
         bn_f_ui.set_text(str(bn))
 
         bn_l_ui = self.ui_select(0, 9)  # Last batch number
-        bn_l_ui.set_text(str(int(bn) + bq - 1))
+        bn_l = '{:04}'.format(int(bn) + bq - 1)
+        bn_l_ui.set_text(bn_l)
 
         ed_ui = self.ui_select(13)  # Expiry date field
         ed_ui.click_input()
@@ -61,18 +62,13 @@ class TecomGenerator(Generator):
             code[i] = code[i][19:]
 
         self.barcodes.append({'item': item,
-                              'bcs': code,
+                              'bcs': [['R1']*len(code), code],
                               'ref': ref,
                               'ed': ed})
 
 
 if __name__ == "__main__":
-    tecom = TecomGenerator({"title": "To generate Reagent number verification",
+    gen = TecomGenerator({"title": "To generate Reagent number verification",
                             "class_name": "ThunderRT6FormDC",
                             "backend": "win32"})
-    if tecom.dev_name != 'Tecom':
-        print('Указан некорректный тип прибора')
-    tecom.gen_from_taskfile()
-    tecom.write_to_dbf('outTecomTest.dbf')
-    c=1
-
+    gen.start()
