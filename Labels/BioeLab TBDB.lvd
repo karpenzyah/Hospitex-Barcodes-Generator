@@ -1,12 +1,12 @@
 Teklynx LabelView: Label Variable Definitions File
 
-Имя файла                     C:\Users\SK\Desktop\Bars\штрих-код для 100_BioeLab_100x72 TBDB.lbl
+Имя файла                     C:\Users\SK\Desktop\bars\Labels\BioeLab TBDB.lbl
 Принтер:                      DATAMAX DMX E-4203 on Ne02:
 
 Имя поля:                     "BARCODE2"
 Источник:                     dBase
 Подсказка:                    ""
-Длина строки:                 23
+Длина строки:                 0
 База данных:                  tbdb
-Ключевое поле:                TB
+Ключевое поле:                ITEM
 Field Type:                   Баркод  (Code 128 (Auto-Switching))

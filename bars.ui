@@ -2,16 +2,19 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>920</width>
-    <height>713</height>
+    <width>499</width>
+    <height>134</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string/>
+   <string>Barcode Generator</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="contextMenuPolicy">
@@ -20,13 +23,16 @@
    <property name="locale">
     <locale language="Russian" country="Russia"/>
    </property>
-   <widget class="QPushButton" name="OkBtn">
+   <widget class="QPushButton" name="ok_btn">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>810</x>
-      <y>680</y>
-      <width>101</width>
-      <height>23</height>
+      <x>340</x>
+      <y>90</y>
+      <width>151</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -45,65 +51,118 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QTableWidget" name="HospsTable">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>901</width>
-      <height>601</height>
-     </rect>
+   <widget class="QComboBox" name="invoice_box">
+    <property name="enabled">
+     <bool>false</bool>
     </property>
-   </widget>
-   <widget class="QPushButton" name="searchBtn">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>10</y>
+      <x>140</x>
+      <y>90</y>
       <width>111</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Найти приборы</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="taskBtn">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>680</y>
-      <width>191</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Сгенерировать задание по счету</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="invoiceBox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>161</width>
-      <height>22</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="editable">
      <bool>true</bool>
     </property>
     <property name="currentText">
-     <string>Введите № счета</string>
+     <string>№ счета</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="customerEdit">
+   <widget class="QComboBox" name="dev_type_box">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>10</y>
+      <width>151</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="editable">
+     <bool>true</bool>
+    </property>
+    <property name="currentText">
+     <string>Выберите тип прибора</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="hosp_box">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>50</y>
+      <width>351</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="editable">
+     <bool>true</bool>
+    </property>
+    <property name="currentText">
+     <string>Выберите прибор</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="invoice_rb">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>10</y>
+      <width>82</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>По № счета</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="manual_rb">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>82</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Вручную</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="add_btn">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>90</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Добавить</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="invoice_list">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>40</y>
-      <width>901</width>
-      <height>21</height>
+      <y>10</y>
+      <width>121</width>
+      <height>111</height>
      </rect>
     </property>
    </widget>

@@ -1,12 +1,12 @@
 Teklynx LabelView: Label Variable Definitions File
 
-Имя файла                     C:\Users\SK\Desktop\Bars\Labels\Tecom.lbl
+Имя файла                     C:\Users\SK\Desktop\bars\Labels\Tecom.lbl
 Принтер:                      DATAMAX DMX E-4203 on Ne02:
 
 Имя поля:                     "BARCODE2"
 Источник:                     dBase
 Подсказка:                    ""
-Длина строки:                 13
-База данных:                  outTecom
+Длина строки:                 0
+База данных:                  outtecom
 Ключевое поле:                ITEM
 Field Type:                   Баркод  (Code 128 B)

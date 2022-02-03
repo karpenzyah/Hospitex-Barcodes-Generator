@@ -1,12 +1,20 @@
 Teklynx LabelView: Label Variable Definitions File
 
-Имя файла                     C:\Users\SK\Desktop\Bars\штрих-код для 100_BioeLab_100x72 монореаг.lbl
+Имя файла                     C:\Users\SK\Desktop\bars\Labels\BioeLab монореаг.lbl
 Принтер:                      DATAMAX DMX E-4203 on Ne02:
 
-Имя поля:                     "BARCODE2"
+Имя поля:                     "TEXT9"
 Источник:                     dBase
 Подсказка:                    ""
-Длина строки:                 0
+Длина строки:                 5
 База данных:                  outblab
-Ключевое поле:                BCR1
-Field Type:                   Баркод  (Code 128 (Auto-Switching))
+Ключевое поле:                BCR2
+Field Type:                   Текст 
+
+Имя поля:                     "TEXT7"
+Источник:                     dBase
+Подсказка:                    ""
+Длина строки:                 5
+База данных:                  outblab
+Ключевое поле:                BCR2
+Field Type:                   Текст 
