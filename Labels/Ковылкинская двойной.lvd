@@ -1,12 +1,12 @@
 Teklynx LabelView: Label Variable Definitions File
 
-Имя файла                     C:\Users\SK\Desktop\Bars\Ковылкинская двойной.lbl
+Имя файла                     D:\Hospitex Barcode Generation\Labels\Ковылкинская двойной.lbl
 Принтер:                      DATAMAX DMX E-4203 on Ne02:
 
 Имя поля:                     "BARCODE2"
 Источник:                     dBase
 Подсказка:                    ""
 Длина строки:                 0
-База данных:                  out200300
+База данных:                  outurit
 Ключевое поле:                ITEM
 Field Type:                   Баркод  (Code 128 (Auto-Switching))

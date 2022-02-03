@@ -50,19 +50,6 @@ class Generator:
             ui_select_args.append(dict(ctrl_index=ui_index))
         return UIDesktop.UIOSelector_Get_UIO(ui_select_args)
 
-    @staticmethod
-    def expiry_date(dt):
-        y = '20' + dt[2:]
-        m = dt[:2]
-        d = calendar.monthrange(int(y), int(m))[1]
-        return y + '.' + str(d) + '.' + m
-
-    @staticmethod
-    def bn_gen():
-        now_date = datetime.today()
-        return '{:02}'.format(now_date.day) + \
-               '{:02}'.format(now_date.month + datetime.weekday(now_date))
-
     def write_to_dbf(self, path_to_file):
         dictrow = self.barcodes[0]
         bc_len = len(dictrow['bcs'][1][0])+1
@@ -167,7 +154,20 @@ class Generator:
             self.gen_from_invoice()
         else:
             self.gen_from_taskfile()
-        self.write_to_dbf(f'out{self.dev_name}Test.dbf')
+        self.write_to_dbf(f'Bases\\out{self.dev_name}.dbf')
+
+    @staticmethod
+    def expiry_date(dt):
+        y = '20' + dt[2:]
+        m = dt[:2]
+        d = calendar.monthrange(int(y), int(m))[1]
+        return y + '.' + str(d) + '.' + m
+
+    @staticmethod
+    def bn_gen():
+        now_date = datetime.today()
+        return '{:02}'.format(now_date.day) + \
+               '{:02}'.format(now_date.month + datetime.weekday(now_date))
 
 
 class HospitexDB:
