@@ -21,12 +21,11 @@ class TecomGenerator(Generator):
         item_ui = self.ui_select(22)  # Reagent code field
         item_ui.set_text(item_id)
 
-        bn = self.bn_gen()
         bn_f_ui = self.ui_select(0, 17)  # Fist batch number
-        bn_f_ui.set_text(str(bn))
+        bn_f_ui.set_text(self.bn)
 
         bn_l_ui = self.ui_select(0, 9)  # Last batch number
-        bn_l = '{:04}'.format(int(bn) + bq - 1)
+        bn_l = '{:04}'.format(int(self.bn) + bq - 1)
         bn_l_ui.set_text(bn_l)
 
         ed_ui = self.ui_select(13)  # Expiry date field

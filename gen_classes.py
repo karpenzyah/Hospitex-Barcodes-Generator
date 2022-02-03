@@ -28,12 +28,14 @@ class Generator:
         self.dev_name = self.conf['Parameters']['device']
         self.hosp = self.conf['Parameters']['hospital']
         self.sn = self.conf['Parameters']['device_sn']
-        if self.dev_name != 'Bioelab':
-            self.uid = self.conf['Parameters']['device_uid']
+        self.uid = self.conf['Parameters']['device_uid']
         if window_ui is not None:
             self.window_ui = window_ui
             subprocess.Popen(self.conf['PathTo'][f'{self.dev_name.lower()}_generator'])
-            time.sleep(3)
+            time.sleep(2)
+
+        self.bn = self.bn_gen()
+
         self.barcodes = []
 
     def __repr__(self):
@@ -48,15 +50,15 @@ class Generator:
             ui_select_args.append(dict(ctrl_index=ui_index))
         return UIDesktop.UIOSelector_Get_UIO(ui_select_args)
 
-    @classmethod
-    def expiry_date(cls, dt):
+    @staticmethod
+    def expiry_date(dt):
         y = '20' + dt[2:]
         m = dt[:2]
         d = calendar.monthrange(int(y), int(m))[1]
         return y + '.' + str(d) + '.' + m
 
-    @classmethod
-    def bn_gen(cls):
+    @staticmethod
+    def bn_gen():
         now_date = datetime.today()
         return '{:02}'.format(now_date.day) + \
                '{:02}'.format(now_date.month + datetime.weekday(now_date))
@@ -76,6 +78,7 @@ class Generator:
                             f'SN C({sn_len})',
                             codepage='cp1251')
         outfile.open(dbf.READ_WRITE)
+        cnt = 0
         for prms in self.barcodes:
             ed = prms['ed'][:2] + '/' + prms['ed'][2:]
             r_flag = prms['bcs'][0]
@@ -97,11 +100,10 @@ class Generator:
                      'REF': prms['ref'],
                      'ED': ed,
                      'HOSP': self.hosp,
-                     'SN': self.sn}
-                )
+                     'SN': self.sn})
+                cnt += 1
         outfile.close()
-        print(f'{self.barcodes.__len__()} строк записано '
-              f'в файл {path_to_file}')
+        print(f'Cтрок записано в файл {path_to_file}: {cnt}')
         os.system(path_to_file)
 
     def gen_from_taskfile(self):
@@ -142,12 +144,12 @@ class Generator:
 
                     if row[1] is None:
                         row[1] = input(
-                            f'Введите срок годности для {item} '
+                            f'Введите срок годности для {ref, item} '
                             'в формате ММ/ГГГГ:  \n')
                     search = re.search('\d\d/\d{4}', row[1])
                     if search is None:
                         ed_r = input(
-                            f'Введите срок годности для {item} '
+                            f'Введите срок годности для {ref, item} '
                             'в формате ММ/ГГГГ:  \n')
                     else:
                         ed_r = search.group(0)

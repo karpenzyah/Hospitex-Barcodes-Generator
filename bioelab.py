@@ -27,12 +27,11 @@ class BioelabGenerator(Generator):
         ed_ui.click_input()
         ed_ui.type_keys(self.expiry_date(ed))
 
-        bn = self.bn_gen()
         first_bottle_n_ui = self.ui_select(8)
-        first_bottle_n_ui.set_text(str(bn))
+        first_bottle_n_ui.set_text(self.bn)
 
         last_bottle_n_ui = self.ui_select(9)
-        last_bottle_n_ui.set_text(str(int(bn) + bq - 1))
+        last_bottle_n_ui.set_text('{:04}'.format(int(self.bn) + bq - 1))
 
         type_ui = self.ui_select(10)
         type_ui.select(0)
