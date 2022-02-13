@@ -1,5 +1,4 @@
 from pyOpenRPA.Robot import UIDesktop
-from configparser import *
 from gen_classes import Generator, HospitexDB
 
 
