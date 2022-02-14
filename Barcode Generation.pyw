@@ -28,7 +28,7 @@ class Ui(QtWidgets.QMainWindow):
             self.invoice_box.addItem(*invoice)
         self.invoice_box.setCurrentText("Выберите счет")
 
-        self.doc = docx.Document('Коды приборов.docx')
+        self.doc = docx.Document(r'Z:\technical_support\Баркоды\Коды приборов.docx')
         self.dev_tables = {'Tecom': 0, 'Urit': 3, 'Bioelab': 1}
         self.get_hosps()
 

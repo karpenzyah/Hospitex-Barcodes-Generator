@@ -60,10 +60,8 @@ class TecomGenerator(Generator):
         for i in range(bq):
             code[i] = code[i][19:]
 
-        self.barcodes.append({'item': item,
-                              'bcs': [['R1']*len(code), code],
-                              'ref': ref,
-                              'ed': ed})
+        self.barcodes.append(
+            dict(item=item, bcs=[['R1'] * len(code), code], ref=ref, ed=ed))
 
 
 if __name__ == "__main__":
