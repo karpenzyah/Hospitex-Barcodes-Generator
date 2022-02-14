@@ -29,10 +29,7 @@ class Generator:
         self.hosp = self.conf['Parameters']['hospital']
         self.sn = self.conf['Parameters']['device_sn']
         self.uid = self.conf['Parameters']['device_uid']
-        if window_ui is not None:
-            self.window_ui = window_ui
-            subprocess.Popen(self.conf['PathTo'][f'{self.dev_name.lower()}_generator'])
-            time.sleep(2)
+        self.window_ui = window_ui
 
         self.bn = self.bn_gen()
 
@@ -144,7 +141,12 @@ class Generator:
                     bq = int(row[2])
 
                     parameters.append([item, ref, ed, bq])
-        print(f'Выполнение задания, кол-во позиций: {parameters.__len__()}')
+        input(f'Нажмите ввод для выполнения задания, кол-во позиций: {parameters.__len__()}')
+        if self.window_ui is not None:
+            subprocess.Popen(
+                self.conf['PathTo'][f'{self.dev_name.lower()}_generator'])
+            time.sleep(2)
+
         for prs in parameters:
             self.generate_barcode(*prs)
 
@@ -153,7 +155,13 @@ class Generator:
         if task_from_invoice == 'Yes':
             self.gen_from_invoice()
         else:
+            input('Нажмите ввод для начала')
+            if self.window_ui is not None:
+                subprocess.Popen(
+                    self.conf['PathTo'][f'{self.dev_name.lower()}_generator'])
+                time.sleep(2)
             self.gen_from_taskfile()
+
         self.write_to_dbf(f'Bases\\out{self.dev_name}.dbf')
 
     @staticmethod

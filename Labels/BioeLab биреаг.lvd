@@ -1,12 +1,12 @@
 Teklynx LabelView: Label Variable Definitions File
 
-Имя файла                     C:\Users\SK\Desktop\bars\Labels\BioeLab биреаг.lbl
+Имя файла                     D:\Hospitex Barcode Generation\Labels\BioeLab биреаг.lbl
 Принтер:                      DATAMAX DMX E-4203 on Ne02:
 
 Имя поля:                     "TEXT7"
 Источник:                     dBase
 Подсказка:                    ""
 Длина строки:                 5
-База данных:                  outblab
+База данных:                  outBioelab
 Ключевое поле:                BCR2
 Field Type:                   Текст 
